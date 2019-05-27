@@ -110,9 +110,9 @@ public class Packet {
 	public Packet() {
 
 	}
-	
+
 	public String packetType() {
-		
+
 		if (Inquiry == 1) {
 			return "RRQ";
 		} else if (Inquiry == 2) {
@@ -126,7 +126,7 @@ public class Packet {
 		} else {
 			return "Unknown";
 		}
-		
+
 	}
 
 	public byte[] convertBytes() throws IOException {
@@ -300,6 +300,19 @@ public class Packet {
 		}
 		return false;
 		// https://docs.oracle.com/javase/6/docs/api/java/util/Arrays.html#copyOfRange%28byte%5B%5D,%20int,%20int%29
+	}
+
+	public int dataLength() {
+		int length = 0;
+		for (int j = 0; j < BlockData.length; j++) {
+			// check until 0 is found
+			if (BlockData[j] != 0) {
+				length++;
+			} else {
+				break;
+			}
+		}
+		return length;
 	}
 
 }

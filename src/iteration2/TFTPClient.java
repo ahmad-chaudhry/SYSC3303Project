@@ -60,10 +60,6 @@ public class TFTPClient {
 
 		// Operation for RRQ
 		if (operation == 1) {
-			// total blocks to transmit
-			int totalnumBlocks = 0;
-			// current block
-			int currentBlock = -1;
 			// loop till right file is found
 			String serverFile;
 			String clientFile;
@@ -106,7 +102,7 @@ public class TFTPClient {
 
 			}
 
-			System.out.println("Attempting to establish connection with Server");
+			System.out.println("Sending file request to Server");
 
 			Packet request = new Packet(1, serverFile);
 			try {
@@ -115,51 +111,37 @@ public class TFTPClient {
 				e.printStackTrace();
 				System.exit(1);
 			}
-			Packet receive = helper.receivePacket(socket);
-			ServerAddress = receive.GetAddress();
-			Port = receive.GetPort();
-
-			totalnumBlocks = receive.GetPacketNum();
-
-			System.out.println();
-			System.out.println(helper.name + ": Request to Server success, starting to receive packets");
-			System.out.println();
-			System.out.println(helper.name + ": receiving " + totalnumBlocks + " blocks");
-
-			try {
-				Packet ack = new Packet(4, totalnumBlocks);
-
-				while (currentBlock < totalnumBlocks) {
-					try {
-						helper.sendPacket(ack, socket, ServerAddress, Port);
-					} catch (IOException e) {
-						e.printStackTrace();
-						System.exit(1);
-					}
-					receive = helper.receivePacket(socket);
-					if (currentBlock + 1 == receive.GetPacketNum()) {
-						currentBlock++;
-						helper.WriteData(Fout, receive.GetData());
-					} else {
-						System.out.println("Packet received not valid");
-						System.exit(1);
-					}
-					ack = new Packet(4, receive.GetPacketNum());
-				}
-				ack = new Packet(4, totalnumBlocks);
-				try {
-					helper.sendPacket(ack, socket, ServerAddress, Port);
-				} catch (IOException e) {
-					e.printStackTrace();
-					System.exit(1);
-				}
-				ack = helper.receivePacket(socket);
+			while (true) {
+				Packet receive = helper.receivePacket(socket);
 				ServerAddress = receive.GetAddress();
 				Port = receive.GetPort();
 
-			} catch (Exception e) {
-				e.printStackTrace();
-				System.exit(1);
+				if (receive.GetInquiry() == 3) {
+					if (receive.dataLength() == 512) {
+						helper.WriteData(Fout, receive.GetData());
+						Packet ack = new Packet(4, receive.GetPacketNum());
+						try {
+							helper.sendPacket(ack, socket, ServerAddress, Port);
+						} catch (IOException e) {
+							e.printStackTrace();
+							System.exit(1);
+						}
+					} else if (receive.dataLength() > 0 && receive.dataLength() < 512) {
+						helper.WriteData(Fout, receive.GetData());
+						Packet ack = new Packet(4, receive.GetPacketNum());
+						try {
+							helper.sendPacket(ack, socket, ServerAddress, Port);
+						} catch (IOException e) {
+							e.printStackTrace();
+							System.exit(1);
+						}
+						break;
+					} else {
+						System.out.println("no more packets to receives");
+						break;
+					}
+
+				}
 			}
 			try {
 				Fout.close();
@@ -168,7 +150,9 @@ public class TFTPClient {
 			}
 
 			// WRITE REQUEST
-		} else if (operation == 2) {
+		} else if (operation == 2)
+
+		{
 			String serverFile;
 			String clientFile;
 			int currentBlock = 0;
@@ -211,8 +195,11 @@ public class TFTPClient {
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
+			if (helper.verbose) {
+				System.out.println(helper.name + ": File located, starting transfer of " + totalnumBlocks + " blocks.");
+			}
 
-			System.out.println("Attempting to establish connection with Server");
+			System.out.println("Sending Data to Server");
 
 			Packet request = new Packet(2, serverFile);
 			try {
@@ -221,35 +208,25 @@ public class TFTPClient {
 				e.printStackTrace();
 				System.exit(1);
 			}
-			Packet receive = helper.receivePacket(socket);
-			ServerAddress = receive.GetAddress();
-			Port = receive.GetPort();
+			Packet receive1 = helper.receivePacket(socket);
+			ServerAddress = receive1.GetAddress();
+			Port = receive1.GetPort();
 
-			System.out.println();
-			System.out.println(helper.name + ": Request to Server success, starting to send packets");
-			System.out.println();
-			System.out.println(helper.name + ": sending " + totalnumBlocks + " blocks");
-
-			request = new Packet(4, totalnumBlocks);
-			try {
-				helper.sendPacket(request, socket, ServerAddress, Port);
-			} catch (IOException e) {
-				e.printStackTrace();
-				System.exit(1);
-			}
-			receive = helper.receivePacket(socket);
-
+			// File transfer loop;
 			while (currentBlock <= totalnumBlocks) {
-				byte[] receiveData = helper.ReadData(Fin, currentBlock, 508);
-				Packet ack = new Packet(3, receiveData, currentBlock);
+				byte[] blockData = helper.ReadData(Fin, currentBlock, Packet.DATASIZE);
+				Packet dpacket = new Packet(3, blockData, currentBlock);
 				try {
-					helper.sendPacket(ack, socket, ServerAddress, Port);
+					helper.sendPacket(dpacket, socket, ServerAddress, Port);
 				} catch (IOException e) {
 					e.printStackTrace();
-					System.exit(1);
 				}
-				receive = helper.receivePacket(socket);
-				currentBlock++;
+				Packet receive = helper.receivePacket(socket);
+
+				if (receive.GetInquiry() == 4) {
+					currentBlock++;
+				} else
+					System.exit(1);
 			}
 
 		} else {

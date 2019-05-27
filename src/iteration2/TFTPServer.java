@@ -258,6 +258,7 @@ class ServerWorker extends Thread {
 			}
 			int totalnumBlocks = 0;
 			int currentBlock = 0;
+
 			try {
 				totalnumBlocks = (int) (FIn.getChannel().size() / Packet.DATASIZE);
 			} catch (IOException e) {
@@ -266,17 +267,7 @@ class ServerWorker extends Thread {
 			if (helper.verbose) {
 				System.out.println(helper.name + ": File located, starting transfer of " + totalnumBlocks + " blocks.");
 			}
-			Packet ack = new Packet(4, totalnumBlocks);
-			try {
-				helper.sendPacket(ack, socket, Address, Port);
-			} catch (IOException e2) {
-				e2.printStackTrace();
-			}
-			Packet receive = recurreceive(socket);
 
-			if (receive.GetInquiry() != 4) {
-				System.exit(1);
-			}
 			// File transfer loop;
 			while (currentBlock <= totalnumBlocks) {
 				byte[] blockData = helper.ReadData(FIn, currentBlock, Packet.DATASIZE);
@@ -286,18 +277,12 @@ class ServerWorker extends Thread {
 				} catch (IOException e) {
 					e.printStackTrace();
 				}
-				receive = recurreceive(socket);
+				Packet receive = recurreceive(socket);
 
 				if (receive.GetInquiry() == 4) {
 					currentBlock++;
 				} else
 					System.exit(1);
-			}
-			ack = new Packet(4, currentBlock);
-			try {
-				helper.sendPacket(ack, socket, Address, Port);
-			} catch (IOException e1) {
-				e1.printStackTrace();
 			}
 			try {
 				FIn.close();
@@ -312,38 +297,47 @@ class ServerWorker extends Thread {
 			} catch (FileNotFoundException e3) {
 				e3.printStackTrace();
 			}
-			Packet ack = new Packet(4, 0);
+			
+			Packet ack1 = new Packet(4, 0);
 			try {
-				helper.sendPacket(ack, socket, Address, Port);
+				helper.sendPacket(ack1, socket, Address, Port);
 			} catch (IOException e2) {
 				e2.printStackTrace();
 			}
-			Packet receive = recurreceive(socket);
+			
+			System.out.println(workingPacket.GetFile());
+			System.out.println(socket.getLocalPort());
+			System.out.println(socket.getLocalAddress());
+			System.out.println(socket.getPort());
+			System.out.println(socket.getInetAddress());
 
-			int totalnumBlocks = receive.GetPacketNum();
-			int currentBlock = -1;
-			ack = new Packet(4, 0);
-			try {
-				helper.sendPacket(ack, socket, Address, Port);
-			} catch (IOException e1) {
-				e1.printStackTrace();
-			}
-			while (currentBlock < totalnumBlocks) {
-				receive = recurreceive(socket);
-				// Makes sure the packet is valid and then writes it to file.
-				if (currentBlock + 1 == receive.GetPacketNum()) {
-					currentBlock++;
-					helper.WriteData(FOut, receive.GetData());
-				} else {
-					System.out.println(helper.name + ": Invalid Packet Recieved! Closing.");
-					System.exit(1);
-				}
-				// Create response with the current block received;
-				ack = new Packet(4, receive.GetPacketNum());
-				try {
-					helper.sendPacket(ack, socket, Address, Port);
-				} catch (IOException e) {
-					e.printStackTrace();
+			Packet receive = helper.receivePacket(socket);
+
+			while (true) {
+				if (receive.GetInquiry() == 3) {
+					if (receive.dataLength() == 512) {
+						helper.WriteData(FOut, receive.GetData());
+						Packet ack = new Packet(4, receive.GetPacketNum());
+						try {
+							helper.sendPacket(ack, socket, Address, Port);
+						} catch (IOException e) {
+							e.printStackTrace();
+							System.exit(1);
+						}
+					} else if (receive.dataLength() > 0 && receive.dataLength() < 512) {
+						helper.WriteData(FOut, receive.GetData());
+						Packet ack = new Packet(4, receive.GetPacketNum());
+						try {
+							helper.sendPacket(ack, socket, Address, Port);
+						} catch (IOException e) {
+							e.printStackTrace();
+							System.exit(1);
+						}
+						break;
+					} else {
+						System.out.println("no more packets to receives");
+						break;
+					}
 				}
 			}
 			try {
@@ -354,8 +348,6 @@ class ServerWorker extends Thread {
 		}
 		System.out.println(helper.name + ": File transfer done, worker thread done.\n");
 	}
-
-	
 
 	private boolean checkAddress(Packet P) {
 		if (P.GetPort() == Port && P.GetAddress().equals(Address))
