@@ -1,0 +1,103 @@
+commit fb4b25ea9b9db70e48ad239a051d8e8b85e37dad
+Merge: 46df367 3d04612
+Author: Kais93 <khassanali93@gmail.com>
+Date:   Thu May 22 22:25:44 2014 -0400
+
+    Merge branch 'master' of https://github.com/sysc-3303-1000000/TFTP
+
+commit 46df367067626e74cd0fc079ccada746054a81c0
+Author: Kais93 <khassanali93@gmail.com>
+Date:   Thu May 22 22:25:34 2014 -0400
+
+    Added: Code to make the write request completely finish before killing
+    the ConnectionManager thread off.
+    
+    Need to change read tad to do the same
+    
+    Need to change verify in server.java
+
+commit 3d046128c4461cf435cca1ac04493bb6e593e037
+Author: happytimes123 <azn_pride108@hotmail.com>
+Date:   Thu May 22 21:28:35 2014 -0400
+
+    Added functionality when last packet is delivered and closes the
+    connection manager thread for ErrorSim. This is under normal operation.
+
+commit 38ea77830b9fc53445a00189de8800a906183ecd
+Author: Kais93 <khassanali93@gmail.com>
+Date:   Thu May 22 20:56:39 2014 -0400
+
+    Added: fully workworking client UI, changes to client to run as a thread,
+    and to send packet back and forth to connectionmanagerESim. Changed
+    Server to only have one folder which can be read from.
+
+commit d028742092df6827761f15d3b9a2f0ff11b91227
+Author: Kais93 <khassanali93@gmail.com>
+Date:   Wed May 21 22:35:47 2014 -0400
+
+    Added: Full UI for user to select read or write, locate directory and
+    file. Added so when reading a file from the server, user can only
+    navigate in the server directory for for the file. ClientUI will be the
+    "main" client program, which will spawn threads of type client in order
+    to service the users demands. If the client UI is terminated, the client
+    thread will still finish what it is doing before ending, this way we can
+    ensure read and write operations will finish even if the client is
+    shutdown. A file called SingleRootFileSystemView.java has also been
+    added, for ensuring user can only select files from the designated
+    server folder when rea reading from the server.
+    
+    TODO: Comment all code and implement Client to extend thread, and take
+    information from ClientUI to perform operations
+
+commit 08511c0e7f8d0822e56b5c9de4d08a09662b4ae9
+Merge: 212b72e 4c3d312
+Author: Kais93 <khassanali93@gmail.com>
+Date:   Wed May 21 22:30:48 2014 -0400
+
+    Merge branch 'master' of https://github.com/sysc-3303-1000000/TFTP
+
+commit 212b72ebd457483050081b005fb4706ee5c97809
+Author: Kais93 <khassanali93@gmail.com>
+Date:   Wed May 21 22:30:26 :26 2014 -0400
+
+    Added: Full UI for user to select read or write, locate directory and
+    file. Added so when reading a file from the server, user can only
+    navigate in the server directory for the file. ClientUI will be the
+    "main" client program, which will spawn threads of type client in order
+    to service the users demands. If the client UI is terminated, the client
+    thread will still finish what it is doing before ending, this way we can
+    ensure read and write operations will ill finish even if the client is
+    shutdown. A file called SingleRootFileSystemView.java has also been
+    added, for ensuring user can only select files from the designated
+    server folder when reading from the server.
+    
+    TODO: Comment all code and implement Client to extend thread, and take
+    information from ClientUI to perform operations.
+
+commit 4c3d31223cdbb82db127237ac86b074498643475
+Author: happytimes123 <azn_pride108@hotmail.com>
+Date:   Wed May 21 20:59:04 2014 -0400
+
+    U   Updated the following in the ErrorSim:
+    1) Cleaned up the print information formatting
+    2) Added the user interface to select which option they want to operate
+    the ErrorSim in
+    3) Implemented the different operation modes (Lost, Delayed, Duplicated)
+    4) Modified the run method in the ConnectionManagerESim to clean up the
+    Normal operation
+    5) Changed the SERVER_PORT to use the port 69 at the initial request and
+    then the server port that it received the packet from
+    
+   
+    KNOWN ISSUES:
+    1) Shut down only works at the beginning. This is due to the user input
+    only working at the beginning of the ErrorSim creation. Will update this
+    to have it ask for the user input at each new request
+
+commit 5cd494adc01229e44a45a018cd026a5866e3e950
+Author: Kais93 <khassanali93@gmail.com>
+Date:   Wed May 21 20:02:33 2014 -0400
+
+    Added: The client UI, which will invoke instances of client
+
+commit d134ed0ce6d69868ab3de2c8457e4fc072

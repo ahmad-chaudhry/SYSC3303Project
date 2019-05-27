@@ -1,9 +1,19 @@
 package iteration2;
 
+/**
+ * TFTPClient.java
+ * 
+ * Iteration 2:
+ * @author Ahmad Chaudhry
+ * 
+ * 
+ * 
+ */
 import java.net.InetAddress;
 import java.util.Scanner;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.*;
@@ -31,10 +41,7 @@ public class TFTPClient {
 
 	private void start() {
 		int operation;
-		// total blocks to transmit
-		int totalnumBlocks = 0;
-		// current block
-		int currentBlock = 0;
+
 		// get users operation (RRQ or WRQ)
 		Scanner sc2 = new Scanner(System.in);
 		// loop till user gives valid response
@@ -53,6 +60,10 @@ public class TFTPClient {
 
 		// Operation for RRQ
 		if (operation == 1) {
+			// total blocks to transmit
+			int totalnumBlocks = 0;
+			// current block
+			int currentBlock = -1;
 			// loop till right file is found
 			String serverFile;
 			String clientFile;
@@ -68,7 +79,7 @@ public class TFTPClient {
 					System.out.println("Invalid file name");
 				}
 			}
-			FileOutputStream Fout;
+			FileOutputStream Fout = null;
 			// loop till new file is created
 			while (true) {
 				System.out.println("Enter the name of the file you want to save to (Client): ");
@@ -82,10 +93,17 @@ public class TFTPClient {
 					} catch (IOException e) {
 						e.printStackTrace();
 					}
+					// put clientFile into a FileOutputStream named Fout
+					try {
+						Fout = new FileOutputStream(directory + "\\client\\" + clientFile);
+					} catch (FileNotFoundException e) {
+						e.printStackTrace();
+					}
 					break;
 				} else {
 					System.out.println("File already exists");
 				}
+
 			}
 
 			System.out.println("Attempting to establish connection with Server");
@@ -98,11 +116,141 @@ public class TFTPClient {
 				System.exit(1);
 			}
 			Packet receive = helper.receivePacket(socket);
-			
-			System.out.println("we got to this point!");
-			//need to implement receive packet above to get a packet back 
+			ServerAddress = receive.GetAddress();
+			Port = receive.GetPort();
 
+			totalnumBlocks = receive.GetPacketNum();
+
+			System.out.println();
+			System.out.println(helper.name + ": Request to Server success, starting to receive packets");
+			System.out.println();
+			System.out.println(helper.name + ": receiving " + totalnumBlocks + " blocks");
+
+			try {
+				Packet ack = new Packet(4, totalnumBlocks);
+
+				while (currentBlock < totalnumBlocks) {
+					try {
+						helper.sendPacket(ack, socket, ServerAddress, Port);
+					} catch (IOException e) {
+						e.printStackTrace();
+						System.exit(1);
+					}
+					receive = helper.receivePacket(socket);
+					if (currentBlock + 1 == receive.GetPacketNum()) {
+						currentBlock++;
+						helper.WriteData(Fout, receive.GetData());
+					} else {
+						System.out.println("Packet received not valid");
+						System.exit(1);
+					}
+					ack = new Packet(4, receive.GetPacketNum());
+				}
+				ack = new Packet(4, totalnumBlocks);
+				try {
+					helper.sendPacket(ack, socket, ServerAddress, Port);
+				} catch (IOException e) {
+					e.printStackTrace();
+					System.exit(1);
+				}
+				ack = helper.receivePacket(socket);
+				ServerAddress = receive.GetAddress();
+				Port = receive.GetPort();
+
+			} catch (Exception e) {
+				e.printStackTrace();
+				System.exit(1);
+			}
+			try {
+				Fout.close();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+
+			// WRITE REQUEST
 		} else if (operation == 2) {
+			String serverFile;
+			String clientFile;
+			int currentBlock = 0;
+			int totalnumBlocks = 0;
+			FileInputStream Fin;
+			// loop till right file is found
+			while (true) {
+				System.out.println("Enter the name of the file you want to save to (Server): ");
+				serverFile = sc2.nextLine();
+				// check if file already exists
+				File tempFile = new File(directory + "\\server\\" + serverFile);
+				boolean exists = tempFile.exists();
+				if (!exists) {
+					try {
+						tempFile.createNewFile();
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
+					break;
+				} else {
+					System.out.println("File already exists");
+				}
+			}
+
+			while (true) {
+				System.out.println("Enter the name of the read file (Client): ");
+				clientFile = sc2.nextLine();
+				// perform a check on file existing
+				Fin = helper.OpenInputFile(directory + "\\client\\" + clientFile);
+				if (Fin == null) {
+					System.out.println("the file does not exist, try again");
+				} else {
+					break;
+				}
+			}
+			System.out.println();
+
+			try {
+				totalnumBlocks = (int) (Fin.getChannel().size() / Packet.DATASIZE);
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+
+			System.out.println("Attempting to establish connection with Server");
+
+			Packet request = new Packet(2, serverFile);
+			try {
+				helper.sendPacket(request, socket, ServerAddress, Port);
+			} catch (IOException e) {
+				e.printStackTrace();
+				System.exit(1);
+			}
+			Packet receive = helper.receivePacket(socket);
+			ServerAddress = receive.GetAddress();
+			Port = receive.GetPort();
+
+			System.out.println();
+			System.out.println(helper.name + ": Request to Server success, starting to send packets");
+			System.out.println();
+			System.out.println(helper.name + ": sending " + totalnumBlocks + " blocks");
+
+			request = new Packet(4, totalnumBlocks);
+			try {
+				helper.sendPacket(request, socket, ServerAddress, Port);
+			} catch (IOException e) {
+				e.printStackTrace();
+				System.exit(1);
+			}
+			receive = helper.receivePacket(socket);
+
+			while (currentBlock <= totalnumBlocks) {
+				byte[] receiveData = helper.ReadData(Fin, currentBlock, 508);
+				Packet ack = new Packet(3, receiveData, currentBlock);
+				try {
+					helper.sendPacket(ack, socket, ServerAddress, Port);
+				} catch (IOException e) {
+					e.printStackTrace();
+					System.exit(1);
+				}
+				receive = helper.receivePacket(socket);
+				currentBlock++;
+			}
 
 		} else {
 			System.out.println("Should not get to this line");
