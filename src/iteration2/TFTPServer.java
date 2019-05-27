@@ -355,12 +355,13 @@ class ServerWorker extends Thread {
 		System.out.println(helper.name + ": File transfer done, worker thread done.\n");
 	}
 
-	/*
-	 * //Gets a packet from the parent WorkerHandler. private Packet
-	 * receivePacket(){ try { Packet p = bQueue.take();
-	 * help.printd("Got the following packet:\n"+p); return p; } catch
-	 * (InterruptedException e) { e.printStackTrace(); } return null; }
-	 */
+	
+
+	private boolean checkAddress(Packet P) {
+		if (P.GetPort() == Port && P.GetAddress().equals(Address))
+			return true;
+		return false;
+	}
 
 	private Packet recurreceive(DatagramSocket soc) {
 		Packet rec = helper.receivePacket(soc);
@@ -374,11 +375,5 @@ class ServerWorker extends Thread {
 			return recurreceive(soc);
 		} else
 			return rec;
-	}
-
-	private boolean checkAddress(Packet P) {
-		if (P.GetPort() == Port && P.GetAddress().equals(Address))
-			return true;
-		return false;
 	}
 }

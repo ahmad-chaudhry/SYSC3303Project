@@ -25,7 +25,7 @@ public class Packet {
 	private int Inquiry = 0;
 	private byte[] BlockData = new byte[DATASIZE];
 	private int packetNum = 0;
-	private byte[] packetBytes = new byte[2]; //for packetNum 
+	private byte[] packetBytes = new byte[2]; // for packetNum
 	private InetAddress Addr = null;
 	private int Port = 0;
 	private String FileName = "";
@@ -128,38 +128,45 @@ public class Packet {
 			packet.write(mode.getBytes()); // change mode to bits and add to packet
 			packet.write(0); // write a 0 to the packet
 		} else if (Inquiry == 3) {
-			int byte1Hold = 0;
-			int byte2Hold = 0;
+			int byteHold = 0;
 			packet.write(0);
 			packet.write(3);
 			if (packetNum < 256) {
-				packet.write(byte1Hold);
+				packet.write(byteHold);
 				packet.write(packetNum);
 				packetNum++;
+			} else if (packetNum > 255) {
+				byteHold = 255;
+				packetNum = 1;
+				packet.write(packetNum);
+				packet.write(byteHold);
+				packetNum++;
+			} else if (packetNum < 256 && byteHold == 255) {
+				packet.write(255);
+				packet.write(byteHold);
 			}
-			/*
-			 * else if (packetNum > 255) { packetNum = 0; packet.write(packetNum);
-			 * packet.write(byte2Hold); packetNum++; } else if (packetNum > 99) { packetNum
-			 * = 1; packet.write(0); packet.write(packetNum); packetNum++; }
-			 */
+
 			for (int j = 0; j < BlockData.length; j++) {
 				packet.write(BlockData[j]);
 			}
 		} else if (Inquiry == 4) {
-			int byte1Hold = 0;
-			int byte2Hold = 0;
+			int byteHold = 0;
 			packet.write(0);
 			packet.write(4);
 			if (packetNum < 256) {
-				packet.write(byte1Hold);
+				packet.write(byteHold);
 				packet.write(packetNum);
 				packetNum++;
+			} else if (packetNum > 255) {
+				byteHold = 255;
+				packetNum = 1;
+				packet.write(packetNum);
+				packet.write(byteHold);
+				packetNum++;
+			} else if (packetNum < 256 && byteHold == 255) {
+				packet.write(255);
+				packet.write(byteHold);
 			}
-			/*
-			 * else if (packetNum > 255) { packetNum = 0; packet.write(packetNum);
-			 * packet.write(byte2Hold); packetNum++; } else if (packetNum > 99) { packetNum
-			 * = 1; packet.write(0); packet.write(packetNum); packetNum++; }
-			 */
 		} else if (Inquiry == 5) {
 			packet.write(0);
 			packet.write(5);
@@ -204,7 +211,7 @@ public class Packet {
 				for (int j = i + 1; j < data.length; j++) {
 					// check until 0 is found
 					if (data[j] != 0) {
-						fileNameBytes[j-2] = data[j];
+						fileNameBytes[j - 2] = data[j];
 					} else {
 						break;
 					}
@@ -256,7 +263,7 @@ public class Packet {
 				for (int j = i + 3; j < data.length; j++) {
 					// check until 0 is found
 					if (data[j] != 0) {
-						ErrorMssgBytes[j-4] = data[j];
+						ErrorMssgBytes[j - 4] = data[j];
 					} else {
 						break;
 					}
