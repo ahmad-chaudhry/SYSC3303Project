@@ -56,18 +56,19 @@ public class TFTPHelper {
 			socket.receive(packet);
 			received.SetAddr(packet.getAddress());
 			received.setPort(packet.getPort());
-			if (verbose) {
-				// Sending packet
-				System.out.println(name + ": Receving packet: \n");
-				System.out.println("To Host: " + packet.getAddress()); // same host address (local computer)
-				System.out.println("Destination Host port: " + packet.getPort()); // Port 23
-				int len = packet.getLength(); // calculate packet length
-				System.out.println("Length: " + len);
-				System.out.print("Containing: ");
-				System.out.println(Arrays.toString(bytesReceived));
-			}
 			// uses method in Packet.java to sort bytes for packet data
 			if (received.receiveBytes(packet.getData()) == true) {
+				if (verbose) {
+					// Sending packet
+					System.out.println(name + ": Receving packet: \n");
+					System.out.println(name + ": of type " + received.packetType());
+					System.out.println("To Host: " + packet.getAddress()); // same host address (local computer)
+					System.out.println("Destination Host port: " + packet.getPort()); // Port 23
+					int len = packet.getLength(); // calculate packet length
+					System.out.println("Length: " + len);
+					System.out.print("Containing: ");
+					System.out.println(Arrays.toString(bytesReceived));
+				}
 				return received;
 			} else {
 				System.out.println(name + " Failed to receive packet");
@@ -113,9 +114,9 @@ public class TFTPHelper {
 		}
 		return null;
 	}
-	
-	
-	//Method needed to create input file else a null error is directed in TFTPClient under operation 2 
+
+	// Method needed to create input file else a null error is directed in
+	// TFTPClient under operation 2
 	public FileInputStream OpenInputFile(String path) {
 		try {
 			FileInputStream in = new FileInputStream(path);

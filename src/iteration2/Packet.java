@@ -110,6 +110,24 @@ public class Packet {
 	public Packet() {
 
 	}
+	
+	public String packetType() {
+		
+		if (Inquiry == 1) {
+			return "RRQ";
+		} else if (Inquiry == 2) {
+			return "WRQ";
+		} else if (Inquiry == 3) {
+			return "DATA";
+		} else if (Inquiry == 4) {
+			return "ACK";
+		} else if (Inquiry == 5) {
+			return "ERROR";
+		} else {
+			return "Unknown";
+		}
+		
+	}
 
 	public byte[] convertBytes() throws IOException {
 		ByteArrayOutputStream packet = new ByteArrayOutputStream();
