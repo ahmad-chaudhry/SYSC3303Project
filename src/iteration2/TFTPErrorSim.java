@@ -1,5 +1,15 @@
 package iteration2;
 
+/**
+ * TFTPErrorSim.java 
+ * 
+ * Iteration 2
+ * 
+ * @author ahmad chaudhry
+ * 
+ */
+
+
 import java.io.File;
 import java.io.IOException;
 import java.net.*;
