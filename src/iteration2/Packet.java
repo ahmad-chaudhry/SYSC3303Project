@@ -18,10 +18,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Packet {
+	// fixed values for use in code
 	public static int PACKETSIZE = 512;
 	public static int DATASIZE = 508;
 	public static int MAXPACKETS = 65536;
 
+	// define variables for use with packet
 	private int Inquiry = 0;
 	private byte[] BlockData = new byte[DATASIZE];
 	private int packetNum = 0;
@@ -33,6 +35,7 @@ public class Packet {
 	private String ErrorMssg = null;
 	private String mode = "netascii";
 
+	// getters for packet
 	public int GetPacketNum() {
 		return packetNum;
 	}
@@ -65,6 +68,7 @@ public class Packet {
 		return ErrorMssg;
 	}
 
+	// setters for packet
 	public void SetAddr(InetAddress Addr) {
 		this.Addr = Addr;
 	}
@@ -111,6 +115,11 @@ public class Packet {
 
 	}
 
+	/**
+	 * Method to find and return string of packet type
+	 * 
+	 * @return the packet type
+	 */
 	public String packetType() {
 
 		if (Inquiry == 1) {
@@ -129,8 +138,15 @@ public class Packet {
 
 	}
 
+	/**
+	 * Method to convert packet data to bytes to send off in a datapacket
+	 * 
+	 * @return the data converted to bytes
+	 * @throws IOException
+	 */
 	public byte[] convertBytes() throws IOException {
 		ByteArrayOutputStream packet = new ByteArrayOutputStream();
+		// if RRQ or WRQ
 		if (Inquiry == 1 | Inquiry == 2) {
 			packet.write(0); // first 0 byte in packet
 			switch (Inquiry) { // make request all Lowercase to check
@@ -145,32 +161,41 @@ public class Packet {
 			packet.write(0); // write a 0 to the packet
 			packet.write(mode.getBytes()); // change mode to bits and add to packet
 			packet.write(0); // write a 0 to the packet
+			// if packet is a DATA packet
 		} else if (Inquiry == 3) {
 			int byteHold = 0;
 			packet.write(0);
 			packet.write(3);
+			// if the current packet number is less than 256 write it to second byte for
+			// BLOCK #
 			if (packetNum < 256) {
 				packet.write(byteHold);
 				packet.write(packetNum);
 				packetNum++;
+				// if the current packet number is greater than 256 write it to first byte for
+				// BLOCK # and leave second byte fixed at 255 (they will be added
+				// to get the packetNum when they are decoded)
 			} else if (packetNum > 255) {
 				byteHold = 255;
 				packetNum = 1;
 				packet.write(packetNum);
 				packet.write(byteHold);
 				packetNum++;
+				// if we have reached the max size of BLOCK #
 			} else if (packetNum < 256 && byteHold == 255) {
 				packet.write(255);
 				packet.write(byteHold);
 			}
-
+			//for the length of the data, write it to the packet
 			for (int j = 0; j < BlockData.length; j++) {
 				packet.write(BlockData[j]);
 			}
+			//Case for ACK packet
 		} else if (Inquiry == 4) {
 			int byteHold = 0;
 			packet.write(0);
 			packet.write(4);
+			//same concept as before for DATA packet
 			if (packetNum < 256) {
 				packet.write(byteHold);
 				packet.write(packetNum);
@@ -185,6 +210,7 @@ public class Packet {
 				packet.write(255);
 				packet.write(byteHold);
 			}
+			//case for ERROR Packet 
 		} else if (Inquiry == 5) {
 			packet.write(0);
 			packet.write(5);
@@ -197,7 +223,12 @@ public class Packet {
 		}
 		return packet.toByteArray();
 	}
-
+	/**
+	 * method used to convert received bytes to values that can be stored in packet
+	 * 
+	 * @param data the bytes that need to be converted
+	 * @return
+	 */
 	public boolean receiveBytes(byte[] data) {
 		BlockData = data;
 		int fileNamelength = 0;
@@ -225,6 +256,7 @@ public class Packet {
 						break;
 					}
 				}
+				//create a holder for filenamebytes
 				byte[] fileNameBytes = new byte[fileNamelength];
 				for (int j = i + 1; j < data.length; j++) {
 					// check until 0 is found
@@ -277,6 +309,7 @@ public class Packet {
 						break;
 					}
 				}
+				//byte holder for error message
 				byte[] ErrorMssgBytes = new byte[ErrorMssglength];
 				for (int j = i + 3; j < data.length; j++) {
 					// check until 0 is found
@@ -302,6 +335,11 @@ public class Packet {
 		// https://docs.oracle.com/javase/6/docs/api/java/util/Arrays.html#copyOfRange%28byte%5B%5D,%20int,%20int%29
 	}
 
+	/**
+	 * Method to get the length of the blockdata for sending and receiving purposes
+	 * 
+	 * @return the length
+	 */
 	public int dataLength() {
 		int length = 0;
 		for (int j = 0; j < BlockData.length; j++) {

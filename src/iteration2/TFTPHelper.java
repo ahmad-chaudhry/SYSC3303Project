@@ -17,11 +17,26 @@ public class TFTPHelper {
 	String name;
 	boolean verbose;
 
+	/**
+	 * The default constructor
+	 * 
+	 * @param name name of class using it
+	 * @param verbose if verbose is used
+	 */
 	public TFTPHelper(String name, boolean verbose) {
 		this.name = name;
 		this.verbose = verbose;
 	}
 
+	/**
+	 * Method used to send a packet
+	 * 
+	 * @param sendPacket the packet that needs to be send
+	 * @param socket the socket to use
+	 * @param addr the address to use
+	 * @param port the port number to use
+	 * @throws IOException
+	 */
 	public void sendPacket(Packet sendPacket, DatagramSocket socket, InetAddress addr, int port) throws IOException {
 		byte[] SendBytes = sendPacket.convertBytes();
 		DatagramPacket sndPacket = new DatagramPacket(SendBytes, SendBytes.length, addr, port);
@@ -48,12 +63,23 @@ public class TFTPHelper {
 
 	}
 
+	/**
+	 * Method used to receive packets
+	 * 
+	 * @param socket the socket to wait at
+	 * @return
+	 */
 	public Packet receivePacket(DatagramSocket socket) {
+		//create empty packet to store info
 		Packet received = new Packet();
 		try {
+			//create holder byte array of size Packets
 			byte[] bytesReceived = new byte[Packet.PACKETSIZE];
+			//create datagrampacket
 			DatagramPacket packet = new DatagramPacket(bytesReceived, bytesReceived.length);
+			//receive info fro socket
 			socket.receive(packet);
+			//set the address and port of the packet to the one received
 			received.SetAddr(packet.getAddress());
 			received.setPort(packet.getPort());
 			// uses method in Packet.java to sort bytes for packet data
@@ -81,6 +107,12 @@ public class TFTPHelper {
 		return received;
 	}
 
+	/**
+	 * Method used to write data to a file
+	 * 
+	 * @param fOut the file
+	 * @param block the block
+	 */
 	public void WriteData(FileOutputStream fOut, byte[] block) {
 		int i = 0;
 		byte[] write = null;
@@ -101,8 +133,15 @@ public class TFTPHelper {
 			e.printStackTrace();
 		}
 	}
-
-	// Read bytes from a File at position.
+	
+	/**
+	 * Method used to read data from file at a position
+	 * 
+	 * @param fIn the file
+	 * @param block the block #
+	 * @param size the size
+	 * @return
+	 */
 	public byte[] ReadData(FileInputStream fIn, int block, int size) {
 		try {
 			long fileSize = fIn.getChannel().size();
@@ -117,6 +156,12 @@ public class TFTPHelper {
 
 	// Method needed to create input file else a null error is directed in
 	// TFTPClient under operation 2
+	/**
+	 * Method used to create a input file 
+	 * 
+	 * @param path the path to file
+	 * @return
+	 */
 	public FileInputStream OpenInputFile(String path) {
 		try {
 			FileInputStream in = new FileInputStream(path);

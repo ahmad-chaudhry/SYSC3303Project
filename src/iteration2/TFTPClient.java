@@ -26,7 +26,17 @@ public class TFTPClient {
 	private String directory;
 	private int Port;
 
+	/**
+	 * Constructor for class
+	 * 
+	 * @param port    The port you want to connect to
+	 * @param address the IP address (local in our case)
+	 * @param dir     Where to access the directory (pre-determined, set to project
+	 *                folder)
+	 * @param verbose True for additional information, else false
+	 */
 	public TFTPClient(int port, InetAddress address, String dir, boolean verbose) {
+		// initalize helper methods with name set to client
 		helper = new TFTPHelper("Client", verbose);
 		try {
 			socket = new DatagramSocket();
@@ -39,6 +49,9 @@ public class TFTPClient {
 		ServerAddress = address;
 	}
 
+	/**
+	 * default run class
+	 */
 	private void start() {
 		int operation;
 
@@ -48,6 +61,7 @@ public class TFTPClient {
 		while (true) {
 			System.out.println("Would you like to do a RRQ or WRQ operation: ");
 			String input = sc2.nextLine();
+			// checks answer
 			if (input.toUpperCase().equals("RRQ")) {
 				operation = 1;
 				break;
@@ -60,9 +74,9 @@ public class TFTPClient {
 
 		// Operation for RRQ
 		if (operation == 1) {
-			// loop till right file is found
 			String serverFile;
 			String clientFile;
+			// loop till right file is found
 			while (true) {
 				System.out.println("Enter the name of the file you want to access (Server): ");
 				serverFile = sc2.nextLine();
@@ -104,31 +118,43 @@ public class TFTPClient {
 
 			System.out.println("Sending file request to Server");
 
+			// sent inital read request packet to server with filename
 			Packet request = new Packet(1, serverFile);
+			// sending packet
 			try {
 				helper.sendPacket(request, socket, ServerAddress, Port);
 			} catch (IOException e) {
 				e.printStackTrace();
 				System.exit(1);
 			}
+			// while true continue receiving files from server
 			while (true) {
+				// receive data packets from server
 				Packet receive = helper.receivePacket(socket);
 				ServerAddress = receive.GetAddress();
 				Port = receive.GetPort();
-
+				// make sure packet is a data packet
 				if (receive.GetInquiry() == 3) {
+					// if packet received is 512 bytes then you know more data is coming
 					if (receive.dataLength() == 512) {
+						// write data to file using helper method
 						helper.WriteData(Fout, receive.GetData());
+						// create ack package with received packet number to send back to sender
 						Packet ack = new Packet(4, receive.GetPacketNum());
+						// send off packet
 						try {
 							helper.sendPacket(ack, socket, ServerAddress, Port);
 						} catch (IOException e) {
 							e.printStackTrace();
 							System.exit(1);
 						}
+						// packet is between 0 and 512 so we know this is the last packet
 					} else if (receive.dataLength() > 0 && receive.dataLength() < 512) {
+						// write the packet to file
 						helper.WriteData(Fout, receive.GetData());
+						// create last ack packet
 						Packet ack = new Packet(4, receive.GetPacketNum());
+						// send last ack packet to sender
 						try {
 							helper.sendPacket(ack, socket, ServerAddress, Port);
 						} catch (IOException e) {
@@ -140,7 +166,6 @@ public class TFTPClient {
 						System.out.println("no more packets to receives");
 						break;
 					}
-
 				}
 			}
 			try {
@@ -176,7 +201,7 @@ public class TFTPClient {
 					System.out.println("File already exists");
 				}
 			}
-
+			//loop till file is found that exists on client
 			while (true) {
 				System.out.println("Enter the name of the read file (Client): ");
 				clientFile = sc2.nextLine();
@@ -189,40 +214,49 @@ public class TFTPClient {
 				}
 			}
 			System.out.println();
-
+			//check the total blocks of the file
 			try {
 				totalnumBlocks = (int) (Fin.getChannel().size() / Packet.DATASIZE);
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
+			//output if verbose
 			if (helper.verbose) {
 				System.out.println(helper.name + ": File located, starting transfer of " + totalnumBlocks + " blocks.");
 			}
 
 			System.out.println("Sending Data to Server");
-
+			//send first packet WRQ to the server
 			Packet request = new Packet(2, serverFile);
+			//send the packet
 			try {
+				//uses helper method to send
 				helper.sendPacket(request, socket, ServerAddress, Port);
 			} catch (IOException e) {
 				e.printStackTrace();
 				System.exit(1);
 			}
+			//receive ack packet from server to write information
 			Packet receive1 = helper.receivePacket(socket);
 			ServerAddress = receive1.GetAddress();
 			Port = receive1.GetPort();
 
 			// File transfer loop;
+			//keep sending data till you've sent all blocks
 			while (currentBlock <= totalnumBlocks) {
+				//get data from file
 				byte[] blockData = helper.ReadData(Fin, currentBlock, Packet.DATASIZE);
+				//create data packet to send
 				Packet dpacket = new Packet(3, blockData, currentBlock);
+				//send packet
 				try {
 					helper.sendPacket(dpacket, socket, ServerAddress, Port);
 				} catch (IOException e) {
 					e.printStackTrace();
 				}
+				//wait for receive packet
 				Packet receive = helper.receivePacket(socket);
-
+				//check that it is ack packet
 				if (receive.GetInquiry() == 4) {
 					currentBlock++;
 				} else
