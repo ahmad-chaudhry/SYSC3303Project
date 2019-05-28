@@ -24,85 +24,85 @@ public class Packet {
 	public static int MAXPACKETS = 65536;
 
 	// define variables for use with packet
-	private int Inquiry = 0;
-	private byte[] BlockData = new byte[DATASIZE];
+	private int inquiry = 0;
+	private byte[] blockData = new byte[DATASIZE];
 	private int packetNum = 0;
 	private byte[] packetBytes = new byte[2]; // for packetNum
-	private InetAddress Addr = null;
-	private int Port = 0;
-	private String FileName = "";
-	private int ErrorCode = 0;
-	private String ErrorMssg = null;
+	private InetAddress addr = null;
+	private int port = 0;
+	private String fileName = "";
+	private int errorCode = 0;
+	private String errorMssg = null;
 	private String mode = "netascii";
 
 	// getters for packet
-	public int GetPacketNum() {
+	public int getPacketNum() {
 		return packetNum;
 	}
 
-	public int GetInquiry() {
-		return Inquiry;
+	public int getinquiry() {
+		return inquiry;
 	}
 
-	public byte[] GetData() {
-		return BlockData;
+	public byte[] getData() {
+		return blockData;
 	}
 
-	public int GetPort() {
-		return Port;
+	public int getPort() {
+		return port;
 	}
 
-	public String GetFile() {
-		return FileName;
+	public String getFile() {
+		return fileName;
 	}
 
-	public InetAddress GetAddress() {
-		return Addr;
+	public InetAddress getAddress() {
+		return addr;
 	}
 
-	public int getErrorCode() {
-		return ErrorCode;
+	public int geterrorCode() {
+		return errorCode;
 	}
 
-	public String getErrorMssg() {
-		return ErrorMssg;
+	public String geterrorMssg() {
+		return errorMssg;
 	}
 
 	// setters for packet
-	public void SetAddr(InetAddress Addr) {
-		this.Addr = Addr;
+	public void setAddr(InetAddress addr) {
+		this.addr = addr;
 	}
 
-	public void setPort(int Port) {
-		this.Port = Port;
+	public void setPort(int port) {
+		this.port = port;
 	}
 
 	// TFTP packet types can be found here https://tools.ietf.org/html/rfc1350
 
 	// Send and Receive Packets
-	public Packet(int Inquiry, String FileName) {
-		this.Inquiry = Inquiry;
-		this.FileName = FileName;
+	public Packet(int inquiry, String fileName) {
+		this.inquiry = inquiry;
+		this.fileName = fileName;
 	}
 
 	// Data Packets
-	public Packet(int Inquiry, byte[] blockData, int n) {
-		this.Inquiry = Inquiry;
-		this.BlockData = blockData;
+	public Packet(int inquiry, byte[] blockData, int n) {
+		this.inquiry = inquiry;
+		this.blockData = blockData;
 		this.packetNum = n;
 	}
 
 	// Ack Packets
-	public Packet(int Inquiry, int n) {
-		this.Inquiry = Inquiry;
+	public Packet(int inquiry, int n) {
+		this.inquiry = inquiry;
 		this.packetNum = n;
 	}
 
 	// Error Packets
-	public Packet(int Inquiry, int Ecode, String Emssg) {
-		this.Inquiry = Inquiry;
-		this.ErrorCode = Ecode;
-		this.ErrorMssg = Emssg;
+	public Packet(int inquiry, int ecode, String emssg) {
+		this.inquiry = inquiry;
+		this.errorCode = ecode;
+		this.errorMssg = emssg;
 	}
 
 	// worker Packet
@@ -122,15 +122,15 @@ public class Packet {
 	 */
 	public String packetType() {
 
-		if (Inquiry == 1) {
+		if (inquiry == 1) {
 			return "RRQ";
-		} else if (Inquiry == 2) {
+		} else if (inquiry == 2) {
 			return "WRQ";
-		} else if (Inquiry == 3) {
+		} else if (inquiry == 3) {
 			return "DATA";
-		} else if (Inquiry == 4) {
+		} else if (inquiry == 4) {
 			return "ACK";
-		} else if (Inquiry == 5) {
+		} else if (inquiry == 5) {
 			return "ERROR";
 		} else {
 			return "Unknown";
@@ -147,9 +147,9 @@ public class Packet {
 	public byte[] convertBytes() throws IOException {
 		ByteArrayOutputStream packet = new ByteArrayOutputStream();
 		// if RRQ or WRQ
-		if (Inquiry == 1 | Inquiry == 2) {
+		if (inquiry == 1 | inquiry == 2) {
 			packet.write(0); // first 0 byte in packet
-			switch (Inquiry) { // make request all Lowercase to check
+			switch (inquiry) { // make request all Lowercase to check
 			case 1:
 				packet.write(1); // write a 1 byte to the packet
 				break;
@@ -157,12 +157,12 @@ public class Packet {
 				packet.write(2);// write a 2 byte to the packet
 				break;
 			}
-			packet.write(FileName.getBytes()); // change name to bits and add to packet
+			packet.write(fileName.getBytes()); // change name to bits and add to packet
 			packet.write(0); // write a 0 to the packet
 			packet.write(mode.getBytes()); // change mode to bits and add to packet
 			packet.write(0); // write a 0 to the packet
 			// if packet is a DATA packet
-		} else if (Inquiry == 3) {
+		} else if (inquiry == 3) {
 			int byteHold = 0;
 			packet.write(0);
 			packet.write(3);
@@ -187,11 +187,11 @@ public class Packet {
 				packet.write(byteHold);
 			}
 			//for the length of the data, write it to the packet
-			for (int j = 0; j < BlockData.length; j++) {
-				packet.write(BlockData[j]);
+			for (int j = 0; j < blockData.length; j++) {
+				packet.write(blockData[j]);
 			}
 			//Case for ACK packet
-		} else if (Inquiry == 4) {
+		} else if (inquiry == 4) {
 			int byteHold = 0;
 			packet.write(0);
 			packet.write(4);
@@ -211,14 +211,14 @@ public class Packet {
 				packet.write(byteHold);
 			}
 			//case for ERROR Packet 
-		} else if (Inquiry == 5) {
+		} else if (inquiry == 5) {
 			packet.write(0);
 			packet.write(5);
-			if (ErrorCode < 10) {
+			if (errorCode < 10) {
 				packet.write(0);
-				packet.write(ErrorCode);
+				packet.write(errorCode);
 			}
-			packet.write(ErrorMssg.getBytes());
+			packet.write(errorMssg.getBytes());
 			packet.write(0);
 		}
 		return packet.toByteArray();
@@ -230,9 +230,9 @@ public class Packet {
 	 * @return
 	 */
 	public boolean receiveBytes(byte[] data) {
-		BlockData = data;
+		blockData = data;
 		int fileNamelength = 0;
-		int ErrorMssglength = 0;
+		int errorMssglength = 0;
 		int i = 0;
 		// check if first bit is zero
 		if (data[i] == 0) {
@@ -243,7 +243,7 @@ public class Packet {
 				return false;
 			}
 			// inquiry is the current data bit
-			Inquiry = data[i];
+			inquiry = data[i];
 			// move to next bit
 			// RRQ/WRQ Packet
 			if (data[i] == 1 || data[i] == 2) {
@@ -266,8 +266,8 @@ public class Packet {
 						break;
 					}
 				}
-				// converts the bytes to a String for FileName
-				FileName = new String(fileNameBytes);
+				// converts the bytes to a String for fileName
+				fileName = new String(fileNameBytes);
 				// Mode is default to netascii so no need to find
 				return true;
 				// Data Packet
@@ -280,9 +280,9 @@ public class Packet {
 				// convert rest of bytes to data
 				// keep track of blockData bytes
 				int currByte = 0;
-				// take remainder bytes and place in BlockData byte array
+				// take remainder bytes and place in blockData byte array
 				for (int j = i + 3; j < data.length; j++) {
-					BlockData[currByte] = data[j];
+					blockData[currByte] = data[j];
 					currByte++;
 				}
 				return true;
@@ -295,33 +295,33 @@ public class Packet {
 				return true;
 				// ERROR Packet
 			} else if (data[i] == 5) {
-				// convert first two bytes to an int for ErrorCode
+				// convert first two bytes to an int for errorCode
 				packetBytes[0] = data[i + 1];
 				packetBytes[1] = data[i + 2];
-				ErrorCode = ((packetBytes[0] & 0xff) << 8) | (packetBytes[1] & 0xff);
+				errorCode = ((packetBytes[0] & 0xff) << 8) | (packetBytes[1] & 0xff);
 				// Convert Error message bytes to string
 				// check the length of the error message
 				for (int j = i + 3; j < data.length; j++) {
 					// check until 0 is found
 					if (data[j] != 0) {
-						ErrorMssglength++;
+						errorMssglength++;
 					} else {
 						break;
 					}
 				}
 				//byte holder for error message
-				byte[] ErrorMssgBytes = new byte[ErrorMssglength];
+				byte[] errorMssgBytes = new byte[errorMssglength];
 				for (int j = i + 3; j < data.length; j++) {
 					// check until 0 is found
 					if (data[j] != 0) {
-						ErrorMssgBytes[j - 4] = data[j];
+						errorMssgBytes[j - 4] = data[j];
 					} else {
 						break;
 					}
 				}
-				// converts the bytes to a String for FileName
-				ErrorMssg = new String(ErrorMssgBytes);
-				if (data[i + ErrorMssglength + 1] == 0) {
+				// converts the bytes to a String for fileName
+				errorMssg = new String(errorMssgBytes);
+				if (data[i + errorMssglength + 1] == 0) {
 					return true;
 				} else {
 					return false;
@@ -342,9 +342,9 @@ public class Packet {
 	 */
 	public int dataLength() {
 		int length = 0;
-		for (int j = 0; j < BlockData.length; j++) {
+		for (int j = 0; j < blockData.length; j++) {
 			// check until 0 is found
-			if (BlockData[j] != 0) {
+			if (blockData[j] != 0) {
 				length++;
 			} else {
 				break;
