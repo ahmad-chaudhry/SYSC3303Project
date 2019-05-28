@@ -68,6 +68,9 @@ public class TFTPClient {
 			} else if (input.toUpperCase().equals("WRQ")) {
 				operation = 2;
 				break;
+			} else if (input.toLowerCase().equals("quit")) {
+				System.out.println("Client is shutting down");
+				System.exit(0);
 			}
 			System.out.println("Invalid response, choose \"RRQ\" or \"WRQ\": ");
 		}
@@ -80,6 +83,10 @@ public class TFTPClient {
 			while (true) {
 				System.out.println("Enter the name of the file you want to access (Server): ");
 				serverFile = sc2.nextLine();
+				if(serverFile.toLowerCase().equals("quit")) {
+					System.out.println("Client is shutting down");
+					System.exit(0);
+				}
 				// perform a check on file existing
 				File tempFile = new File(directory + "\\server\\" + serverFile);
 				boolean exists = tempFile.exists();
@@ -94,6 +101,10 @@ public class TFTPClient {
 			while (true) {
 				System.out.println("Enter the name of the file you want to save to (Client): ");
 				clientFile = sc2.nextLine();
+				if(clientFile.toLowerCase().equals("quit")) {
+					System.out.println("Client is shutting down");
+					System.exit(0);
+				}
 				// check if file already exists
 				File tempFile = new File(directory + "\\client\\" + clientFile);
 				boolean exists = tempFile.exists();
@@ -187,6 +198,10 @@ public class TFTPClient {
 			while (true) {
 				System.out.println("Enter the name of the file you want to save to (Server): ");
 				serverFile = sc2.nextLine();
+				if(serverFile.toLowerCase().equals("quit")) {
+					System.out.println("Client is shutting down");
+					System.exit(0);
+				}
 				// check if file already exists
 				File tempFile = new File(directory + "\\server\\" + serverFile);
 				boolean exists = tempFile.exists();
@@ -284,6 +299,7 @@ public class TFTPClient {
 			InetAddress AddrHolder;
 			// loop while no break
 			while (true) {
+				System.out.println("At any moment, you can type 'quit' to quit the client");
 				System.out.println("Run client with verbose mode (Y/N)?");
 				// get users input
 				String input = sc.nextLine();
@@ -294,6 +310,9 @@ public class TFTPClient {
 				} else if (input.toUpperCase().equals("N")) {
 					verbose = false;
 					break;
+				} else if (input.toLowerCase().equals("quit")) {
+					System.out.println("Client is shutting down");
+					System.exit(0);
 				}
 				// request user to enter valid input
 				System.out.println("Mode not valid, please choose either \"Y\" or \"N\" for verbose");
@@ -311,6 +330,9 @@ public class TFTPClient {
 					if (input.toUpperCase().equals("TEST")) {
 						port = 23;
 						break;
+					} else if (input.toLowerCase().equals("quit")) {
+						System.out.println("Client is shutting down");
+						System.exit(0);
 					}
 					System.out.println("Mode not valid, please choose either \"Normal\" or \"Test\" for mode");
 				}
@@ -326,6 +348,10 @@ public class TFTPClient {
 						System.out.println("Enter the IP address: ");
 						AddrHolder = InetAddress.getByName(sc.nextLine());
 						break;
+					}
+					if (input.toLowerCase().equals("quit")) {
+						System.out.println("Client is shutting down");
+						System.exit(0);
 					}
 					System.out.println("Mode not valid, please choose either \"Normal\" or \"Test\" for mode");
 				}
@@ -344,9 +370,12 @@ public class TFTPClient {
 						break;
 					}
 					// if they want to stop set running false it will break from while loop
-					if (input.toUpperCase().equals("N")) {
+					else if (input.toUpperCase().equals("N")) {
 						running = false;
 						break;
+					} else if (input.toLowerCase().equals("quit")) {
+						System.out.println("Client is shutting down");
+						System.exit(0);
 					}
 					System.out.println("Invalid response please choose \"Y\" or \"N\": ");
 				}
