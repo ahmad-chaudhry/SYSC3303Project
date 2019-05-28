@@ -309,11 +309,11 @@ class ServerWorker extends Thread {
 		//create a new input file stream
 		FileInputStream FIn;
 		//check if the packet received is for a RRQ
-		if (workingPacket.GetInquiry() == 1) {
+		if (workingPacket.getInquiry() == 1) {
 			//print the name of the file
-			System.out.println(workingPacket.GetFile());
+			System.out.println(workingPacket.getFile());
 			//put file into a filestream
-			FIn = helper.OpenInputFile(Directory + workingPacket.GetFile());
+			FIn = helper.OpenInputFile(Directory + workingPacket.getFile());
 			//make sure file is not null
 			if (FIn == null) {
 				System.exit(1);
@@ -347,7 +347,7 @@ class ServerWorker extends Thread {
 				//wait to receive a ack packet
 				Packet receive = helper.receivePacket(socket);
 				//check that it is a ACK packet
-				if (receive.GetInquiry() == 4) {
+				if (receive.getInquiry() == 4) {
 					//continue to move to the next block if ACK packet
 					currentBlock++;
 				} else
@@ -362,7 +362,7 @@ class ServerWorker extends Thread {
 			// Write Request
 			FileOutputStream FOut = null;
 			try {
-				FOut = new FileOutputStream(Directory + workingPacket.GetFile(), true);
+				FOut = new FileOutputStream(Directory + workingPacket.getFile(), true);
 			} catch (FileNotFoundException e3) {
 				e3.printStackTrace();
 			}
@@ -378,13 +378,13 @@ class ServerWorker extends Thread {
 			//loop till file is retrieved 
 			while (true) {
 				//check that packet is a DATA packet
-				if (receive.GetInquiry() == 3) {
+				if (receive.getInquiry() == 3) {
 					//check if size of packet is full so we know more packets are coming
 					if (receive.dataLength() == 512) {
 						//write data to file
-						helper.WriteData(FOut, receive.GetData());
+						helper.WriteData(FOut, receive.getData());
 						//send pack a ACK packet
-						Packet ack = new Packet(4, receive.GetPacketNum());
+						Packet ack = new Packet(4, receive.getPacketNum());
 						try {
 							helper.sendPacket(ack, socket, Address, Port);
 						} catch (IOException e) {
@@ -394,9 +394,9 @@ class ServerWorker extends Thread {
 						//we know that if DATA packet is between 0 and 512 this is the last packet
 					} else if (receive.dataLength() > 0 && receive.dataLength() < 512) {
 						//write data to file
-						helper.WriteData(FOut, receive.GetData());
+						helper.WriteData(FOut, receive.getData());
 						//send last ACK packet
-						Packet ack = new Packet(4, receive.GetPacketNum());
+						Packet ack = new Packet(4, receive.getPacketNum());
 						try {
 							helper.sendPacket(ack, socket, Address, Port);
 						} catch (IOException e) {

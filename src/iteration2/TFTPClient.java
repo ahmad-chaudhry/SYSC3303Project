@@ -131,16 +131,16 @@ public class TFTPClient {
 			while (true) {
 				// receive data packets from server
 				Packet receive = helper.receivePacket(socket);
-				ServerAddress = receive.GetAddress();
-				Port = receive.GetPort();
+				ServerAddress = receive.getAddress();
+				Port = receive.getPort();
 				// make sure packet is a data packet
-				if (receive.GetInquiry() == 3) {
+				if (receive.getInquiry() == 3) {
 					// if packet received is 512 bytes then you know more data is coming
 					if (receive.dataLength() == 512) {
 						// write data to file using helper method
-						helper.WriteData(Fout, receive.GetData());
+						helper.WriteData(Fout, receive.getData());
 						// create ack package with received packet number to send back to sender
-						Packet ack = new Packet(4, receive.GetPacketNum());
+						Packet ack = new Packet(4, receive.getPacketNum());
 						// send off packet
 						try {
 							helper.sendPacket(ack, socket, ServerAddress, Port);
@@ -151,9 +151,9 @@ public class TFTPClient {
 						// packet is between 0 and 512 so we know this is the last packet
 					} else if (receive.dataLength() > 0 && receive.dataLength() < 512) {
 						// write the packet to file
-						helper.WriteData(Fout, receive.GetData());
+						helper.WriteData(Fout, receive.getData());
 						// create last ack packet
-						Packet ack = new Packet(4, receive.GetPacketNum());
+						Packet ack = new Packet(4, receive.getPacketNum());
 						// send last ack packet to sender
 						try {
 							helper.sendPacket(ack, socket, ServerAddress, Port);
@@ -238,8 +238,8 @@ public class TFTPClient {
 			}
 			//receive ack packet from server to write information
 			Packet receive1 = helper.receivePacket(socket);
-			ServerAddress = receive1.GetAddress();
-			Port = receive1.GetPort();
+			ServerAddress = receive1.getAddress();
+			Port = receive1.getPort();
 
 			// File transfer loop;
 			//keep sending data till you've sent all blocks
@@ -257,7 +257,7 @@ public class TFTPClient {
 				//wait for receive packet
 				Packet receive = helper.receivePacket(socket);
 				//check that it is ack packet
-				if (receive.GetInquiry() == 4) {
+				if (receive.getInquiry() == 4) {
 					currentBlock++;
 				} else
 					System.exit(1);
