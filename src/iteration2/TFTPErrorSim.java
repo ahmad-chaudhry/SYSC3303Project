@@ -25,6 +25,8 @@ public class TFTPErrorSim {
 	private int ClientPort, ServerPort;
 	private boolean verbose;
 	private int operation = -1;
+	private int errorPacketType = 0;	//1=RRQ, 2=WRQ, 3=DATA, 4=ACK
+	private int packetBlockNumber = 0;
 
 	public TFTPErrorSim(boolean verbose) {
 		this.verbose = verbose;
@@ -51,22 +53,26 @@ public class TFTPErrorSim {
 		while (true) {
 			String input = sc2.nextLine();
 			if (input.equals("0")) {
-				sc2.close();
 				operation = 0;
 				break;
 			} else if (input.equals("1")) {
-				sc2.close();
 				operation = 1;
-				break;
 			} else if (input.equals("2")) {
-				sc2.close();
 				operation = 2;
-				break;
 			} else if (input.equals("3")) {
-				sc2.close();
 				operation = 3;
+			} 
+			if(input.equals("1") || input.equals("2") || input.equals("3")) {
+				//show the type of packet options
+				packetType();
+				//if the lost packet isn't RRQ or RRQ, ask for block number
+				if(errorPacketType != 1 && errorPacketType != 2) {
+					packetNumber();
+				}
 				break;
 			}
+			
+			//if we reach here, an invalid response was entered
 			System.out.println("Invalid response, choose again");
 			System.out.println("Normal operation (0)");
 			System.out.println("Lost a packet (1)");
@@ -77,20 +83,75 @@ public class TFTPErrorSim {
 		start();
 	}
 
+	public void packetType() {
+		Scanner sc3 = new Scanner(System.in);
+		System.out.println("What type of packet would you like to lose/delay/duplicate?");
+		System.out.println("RRQ (R)");
+		System.out.println("WRQ (W)");
+		System.out.println("DATA (D)");
+		System.out.println("ACK (A)");
+		while(true) {
+			String packetType = sc3.nextLine();
+			if(packetType.equals("R")) { 
+				//losing RRQ
+				errorPacketType = 1;
+				break;
+			} else if (packetType.equals("W")) {
+				//losing WRQ
+				errorPacketType = 2;
+				break;
+			} else if (packetType.equals("D")) {
+				//losing DATA
+				errorPacketType = 3;
+				break;
+			} else if (packetType.equals("A")) {
+				//losing ACK
+				errorPacketType = 4;
+				break;
+			} else {
+				System.out.println("Invalid response, choose again");
+				System.out.println("What type of packet would you like to lose/delay/duplicate?");
+				System.out.println("RRQ (R)");
+				System.out.println("WRQ (W)");
+				System.out.println("DATA (D)");
+				System.out.println("ACK (A)");
+				
+			}
+		}
+	}
+	
+	public void packetNumber() {
+		Scanner sc4 = new Scanner(System.in);
+		System.out.println("What block number would you like to lose/delay/duplicate (enter a number)?");
+		
+		while(true) {
+			String blockNum = sc4.nextLine();
+			try {
+				Integer integer = Integer.parseInt(blockNum);
+				//save the entered block number
+				packetBlockNumber = integer;
+			} catch (NumberFormatException e) {
+				System.out.println("Invalid response, enter a valid number");
+				System.out.println("What block number would you like to lose/delay/duplicate?");
+			}
+		}
+	}
+	
 	public void start() {
 		// get users operation
 		for (;;) {
+			
+			byte[] data = new byte[Packet.PACKETSIZE];
+			// wait on port for data
+			Packet receivedPacket = helper.receivePacket(ClientSendandReceiveSocket);
 			if (operation == 0) {
 				// Do nothing send same packet
 				// holding data
-				byte[] data = new byte[Packet.PACKETSIZE];
-				// wait on port for data
-				Packet receivedPacket = helper.receivePacket(ClientSendandReceiveSocket);
-				ClientPort = receivedPacket.GetPort();
-				ClientAddress = receivedPacket.GetAddress();
+				ClientPort = receivedPacket.getPort();
+				ClientAddress = receivedPacket.getAddress();
 				// ASSUMING BOTH CLIENT AND SERVER ON SAME ADDRESS
-				ServerAddress = receivedPacket.GetAddress();
-				String ClientFileName = receivedPacket.GetFile();
+				ServerAddress = receivedPacket.getAddress();
+				String ClientFileName = receivedPacket.getFile();
 				// tell user what file has been received
 				if (verbose) {
 					System.out.println(helper.name + ": received file: " + ClientFileName);
@@ -104,8 +165,8 @@ public class TFTPErrorSim {
 				}
 				// Wait for response from Server
 				receivedPacket = helper.receivePacket(ServerSendandReceiveSocket);
-				ServerAddress = receivedPacket.GetAddress();
-				ServerPort = receivedPacket.GetPort();
+				ServerAddress = receivedPacket.getAddress();
+				ServerPort = receivedPacket.getPort();
 				// Send Received Response to Client
 				try {
 					helper.sendPacket(receivedPacket, ClientSendandReceiveSocket, ClientAddress, ClientPort);
@@ -113,11 +174,17 @@ public class TFTPErrorSim {
 					e.printStackTrace();
 				}
 			} else if (operation == 1) {
-
+				//TODO implement the 'lost a packet' option
+				
+				
+				
 			} else if (operation == 2) {
-
+				//TODO implement the 'delay a packet' option
+				
+				
+				
 			} else if (operation == 3) {
-
+				
 			}
 		}
 	}
