@@ -40,7 +40,7 @@ public class Packet {
 		return packetNum;
 	}
 
-	public int getinquiry() {
+	public int getInquiry() {
 		return inquiry;
 	}
 

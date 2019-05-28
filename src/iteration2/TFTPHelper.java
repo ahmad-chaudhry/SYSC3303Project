@@ -80,7 +80,7 @@ public class TFTPHelper {
 			//receive info fro socket
 			socket.receive(packet);
 			//set the address and port of the packet to the one received
-			received.SetAddr(packet.getAddress());
+			received.setAddr(packet.getAddress());
 			received.setPort(packet.getPort());
 			// uses method in Packet.java to sort bytes for packet data
 			if (received.receiveBytes(packet.getData()) == true) {
