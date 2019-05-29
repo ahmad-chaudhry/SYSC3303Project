@@ -92,19 +92,19 @@ public class TFTPErrorSim {
 		System.out.println("ACK (A)");
 		while(true) {
 			String packetType = sc3.nextLine();
-			if(packetType.equals("R")) { 
+			if(packetType.equalsIgnoreCase("R")) { 
 				//RRQ packet
 				errorPacketType = 1;
 				break;
-			} else if (packetType.equals("W")) {
+			} else if (packetType.equalsIgnoreCase("W")) {
 				//WRQ packet
 				errorPacketType = 2;
 				break;
-			} else if (packetType.equals("D")) {
+			} else if (packetType.equalsIgnoreCase("D")) {
 				//DATA packet
 				errorPacketType = 3;
 				break;
-			} else if (packetType.equals("A")) {
+			} else if (packetType.equalsIgnoreCase("A")) {
 				//ACK packet
 				errorPacketType = 4;
 				break;
