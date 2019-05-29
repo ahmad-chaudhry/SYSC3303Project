@@ -40,9 +40,9 @@ Ahmad: Wasn't on our team for Iteration 1
 Iteration 2:
 
 Johan: Updated TFTPErrorSim class to ask for packet type and block number of the datagram packet that we want to test. Added client shutdown option throughout TFTPClient class (now there's a shutdown option at every question the client is asked). Handled packet duplication testing.
-Dominic:
-Adam:
-Lyndon:
+Dominic: N/A
+Adam: Created Sequence Diagram, and State Digrams worked at the TFTPClient interface with Johan.
+Lyndon: Worked on State Diagrams and Use Cases.
 Ahmad: Got the file transfer to work properly (it was not functional in our iteration 1).
 
 
