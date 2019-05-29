@@ -64,10 +64,10 @@ public class TFTPErrorSim {
 			} 
 			if(input.equals("1") || input.equals("2") || input.equals("3")) {
 				//show the type of packet options
-				packetType();
+				getPacketType();
 				//if the lost packet isn't RRQ or RRQ, ask for block number
 				if(errorPacketType != 1 && errorPacketType != 2) {
-					packetNumber();
+					getPacketNumber();
 				}
 				break;
 			}
@@ -83,7 +83,7 @@ public class TFTPErrorSim {
 		start();
 	}
 
-	public void packetType() {
+	public void getPacketType() {
 		Scanner sc3 = new Scanner(System.in);
 		System.out.println("What type of packet would you like to lose/delay/duplicate?");
 		System.out.println("RRQ (R)");
@@ -93,19 +93,19 @@ public class TFTPErrorSim {
 		while(true) {
 			String packetType = sc3.nextLine();
 			if(packetType.equals("R")) { 
-				//losing RRQ
+				//RRQ packet
 				errorPacketType = 1;
 				break;
 			} else if (packetType.equals("W")) {
-				//losing WRQ
+				//WRQ packet
 				errorPacketType = 2;
 				break;
 			} else if (packetType.equals("D")) {
-				//losing DATA
+				//DATA packet
 				errorPacketType = 3;
 				break;
 			} else if (packetType.equals("A")) {
-				//losing ACK
+				//ACK packet
 				errorPacketType = 4;
 				break;
 			} else {
@@ -120,7 +120,7 @@ public class TFTPErrorSim {
 		}
 	}
 	
-	public void packetNumber() {
+	public void getPacketNumber() {
 		Scanner sc4 = new Scanner(System.in);
 		System.out.println("What block number would you like to lose/delay/duplicate (enter a number)?");
 		
