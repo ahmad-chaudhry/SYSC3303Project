@@ -30,7 +30,7 @@ Breakdown of responsibilities of each team member for this and previous iteratio
 Iteration 1:
 When we submitted iteration 1 we didn't have the file transfer working properly.
 
-Johan: Created ClientConnectionThread class, the sendAndReceive() method in the Client class, created the class diagram
+Johan: Created ClientConnectionThread class, the sendAndReceive() method in the Client class, created the class diagram.
 Dominic: Worked on the server handling & client connection threads, use cases.
 Adam: Handled the shut down.
 Lyndon: Created the scanners to prompt the user to enter the action they want to perform (read, write, quit) and the file name they wish to read/write to/from. Added multithreaded server.
@@ -39,7 +39,7 @@ Ahmad: Wasn't on our team for Iteration 1
 
 Iteration 2:
 
-Johan: Updated TFTPErrorSim class to ask for packet type and block number of the datagram packet that we want to test. Added client shutdown option throughout TFTPClient class (now there's a shutdown option at every question the client is asked). Handled packet duplication testing.
+Johan: Finalized the README from all group members collective information. Updated TFTPErrorSim class to ask for packet type and block number of the datagram packet that we want to test. Added client shutdown option throughout TFTPClient class (now there's a shutdown option at every question the client is asked). Handled packet duplication testing.
 Dominic: N/A
 Adam: Created Sequence Diagram, and State Digrams worked at the TFTPClient interface with Johan.
 Lyndon: Worked on State Diagrams and Use Cases.
@@ -48,3 +48,19 @@ Ahmad: Got the file transfer to work properly (it was not functional in our iter
 
 
 Detailed set up and test instructions, including test files used:
+
+Running the TFTP File Transfer
+Step 1: Start up server, ErrorSim and then Client. 
+Step 2: Have a Client and Server Folder to be able to Read and Write Files into.
+Step 3: Follow the command prompts to contiune transfering a file
+Step 4: To write a File enter
+- Enter WRQ
+- Enter a.txt from the Client Folder: a.txt
+- Enter b.txt it can be any file that does not exisit in the current Server Folder
+To Read a File
+- Enter RRQ
+- Enter a.txt
+- Enter use b.txt, it can be any file that does not exisit in the current Client Folder
+Step 5: Quit Client and Server
+- Enter Quit: Client
+- Enter Quit: Server
