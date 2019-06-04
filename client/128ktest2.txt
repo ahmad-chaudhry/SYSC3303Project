@@ -1,0 +1,15 @@
+commit fb4b25ea9b9db70e48ad239a051d8e8b85e37dad
+Merge: 46df367 3d04612
+Author: Kais93 <khassanali93@gmail.com>
+Date:   Thu May 22 22:25:44 2014 -0400
+
+    Merge branch 'master' of https://github.com/sysc-3303-1000000/TFTP
+
+commit 46df367067626e74cd0fc079ccada746054a81c0
+Author: Kais93 <khassanali93@gmail.com>
+Date:   Thu May 22 22:25:34 2014 -0400
+
+    Added: Code to make the write request completely finish before killing
+    the ConnectionManager thread off.
+    
+    Need to change read tad t

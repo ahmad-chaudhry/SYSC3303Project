@@ -1,0 +1,8 @@
+Carleton University
+Department of Systems and Computer Engineering
+SYSC 3303 - Real-Time Concurrent Systems - Summer 2019
+Project Specification: Version 1 (subject to modifications!)
+Version 1.1 May 16th: clarifications on prompting the users for information
+Teams will design and implement a file transfer system based on the TFTP
+specification (RFC 1350) that is available on the course website and that has been
+discussed in class. The system will consist of TFTP client(s) running on one or severavera
