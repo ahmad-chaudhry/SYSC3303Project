@@ -152,19 +152,19 @@ public class TFTPClient {
 				if (receive.GetInquiry() == 5) {
 					// file does not exist error
 					if (receive.getErrorCode() == 1) {
-						System.out.println(receive.getErrorMssg());
+						System.out.println("Error Code: "+ receive.getErrorCode()+ ": " + receive.getErrorMssg());
 						break;
 						// access violation error
 					} else if (receive.getErrorCode() == 2) {
-						System.out.println(receive.getErrorMssg());
+						System.out.println("Error Code: "+ receive.getErrorCode()+ ": " + receive.getErrorMssg());
 						break;
 						// illegal tftp operation error
 					} else if (receive.getErrorCode() == 4) {
-						System.out.println(receive.getErrorMssg());
+						System.out.println("Error Code: "+ receive.getErrorCode()+ ": " + receive.getErrorMssg());
 						break;
 						// file already exists error
 					} else if (receive.getErrorCode() == 6) {
-						System.out.println(receive.getErrorMssg());
+						System.out.println("Error Code: "+ receive.getErrorCode()+ ": " + receive.getErrorMssg());
 						break;
 					}
 				}
@@ -300,19 +300,19 @@ public class TFTPClient {
 			if (receive1.GetInquiry() == 5) {
 				// file not found error
 				if (receive1.getErrorCode() == 1) {
-					System.out.println(receive1.getErrorMssg());
+					System.out.println("Error Code: "+ receive1.getErrorCode()+ ": " + receive1.getErrorMssg());
 					return;
 					// access violation error
 				} else if (receive1.getErrorCode() == 2) {
-					System.out.println(receive1.getErrorMssg());
+					System.out.println("Error Code: "+ receive1.getErrorCode()+ ": " + receive1.getErrorMssg());
 					return;
 					// file already exists error
 				} else if (receive1.getErrorCode() == 6) {
-					System.out.println(receive1.getErrorMssg());
+					System.out.println("Error Code: "+ receive1.getErrorCode()+ ": " + receive1.getErrorMssg());
 					return;
 					// illegal tftp operation error
 				} else if (receive1.getErrorCode() == 4) {
-					System.out.println(receive1.getErrorMssg());
+					System.out.println("Error Code: "+ receive1.getErrorCode()+ ": " + receive1.getErrorMssg());
 					return;
 				}
 			}

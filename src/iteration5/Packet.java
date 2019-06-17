@@ -156,37 +156,56 @@ public class Packet {
 	 * @throws IOException
 	 */
 	public byte[] convertBytes() {
-		byte[] out = new byte[516];
+		// create byte array to store packet data
+		byte[] out = new byte[520];
+		// first byte is 0
 		out[0] = 0;
+		// second byte is operation number
 		out[1] = (byte) Inquiry;
 		int i = 2;
+		// make sure inquiry is between 1 and 5
 		if (Inquiry < 1 || Inquiry > 5)
 			return null;
+		// if RRQ or WRQ
 		if (Inquiry == 1 || Inquiry == 2) {
+			// put in filename
 			i = offsetByteCopy(out, FileName.getBytes(), i);
 			out[i++] = 0;
+			// put in mode
 			i = offsetByteCopy(out, mode.getBytes(), i);
 			out[i++] = 0;
+			// create another array for copy
 			byte[] res = new byte[i];
 			System.arraycopy(out, 0, res, 0, i);
 			out = res;
 		}
+		// if DATA packet
 		if (Inquiry == 3) {
-			i = offsetByteCopy(out, i2b(packetNum, 2), i);
+			// put packetnumber in array
+			i = offsetByteCopy(out, integer2Bytes(packetNum, 2), i);
+			// put block data into array
 			System.arraycopy(BlockData, 0, out, i, BlockData.length);
 			i += BlockData.length;
+			// create another array for copy
 			byte[] res = new byte[i];
+			// put zero byte in
 			System.arraycopy(out, 0, res, 0, i);
 			out = res;
 		}
+		// if ACK packet
 		if (Inquiry == 4) {
-			i = offsetByteCopy(out, i2b(packetNum, 2), i);
+			// put packet number
+			i = offsetByteCopy(out, integer2Bytes(packetNum, 2), i);
 			byte[] res = new byte[i];
+			// put zero byte in
 			System.arraycopy(out, 0, res, 0, i);
 			out = res;
 		}
+		// ERROR packet
 		if (Inquiry == 5) {
-			i = offsetByteCopy(out, i2b(ErrorCode, 2), i);
+			// put error code in
+			i = offsetByteCopy(out, integer2Bytes(ErrorCode, 2), i);
+			// put error message in
 			i = offsetByteCopy(out, ErrorMssg.getBytes(), i);
 			out[i++] = 0;
 			byte[] res = new byte[i];
@@ -197,7 +216,14 @@ public class Packet {
 
 	}
 
-	private byte[] i2b(int integer, int size) {
+	/**
+	 * Method used to change a integer to byte
+	 * 
+	 * @param integer the integer
+	 * @param size    the size of the integer
+	 * @return
+	 */
+	private byte[] integer2Bytes(int integer, int size) {
 		ByteBuffer dbuf = ByteBuffer.allocate(4);
 		dbuf.putInt(integer);
 		byte[] bytes = dbuf.array();
@@ -208,6 +234,14 @@ public class Packet {
 		return result;
 	}
 
+	/**
+	 * Method used to offset byte code by i amount
+	 * 
+	 * @param out   the output array
+	 * @param bytes the input array
+	 * @param i     the offset
+	 * @return i plus bytes length
+	 */
 	private int offsetByteCopy(byte[] out, byte[] bytes, int i) {
 		if ((bytes.length + i) < out.length) {
 			for (int k = 0; k < bytes.length; k++)

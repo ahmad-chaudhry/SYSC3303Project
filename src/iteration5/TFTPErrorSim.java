@@ -27,7 +27,7 @@ public class TFTPErrorSim {
 	private int packetBlockNumber = 0;
 	private int clientrequest = -1;
 	private InetAddress address;
-	private int targetACK, newACK;
+	private int oldACK, newACK;
 
 	public TFTPErrorSim(boolean verbose) {
 		filetransfer = false;
@@ -117,7 +117,7 @@ public class TFTPErrorSim {
 				System.out.println("9 - Duplicate a Packet");
 			}
 		}
-		if (operation == 4) {
+		if (operation == 6) {
 			getAckpacketNumber(sc);
 		}
 		// if operation is a lost/delay/duplicate packet ask for the packet type
@@ -132,9 +132,9 @@ public class TFTPErrorSim {
 		System.out.println("What ACK block number would you like to change (enter a number)?");
 		while (true) {
 			try {
-				targetACK = sc.nextInt();
+				oldACK = sc.nextInt();
 				// save the entered block number
-				if (targetACK > -1) {
+				if (oldACK > -1) {
 					break;
 				}
 			} catch (NumberFormatException e) {
@@ -276,6 +276,7 @@ public class TFTPErrorSim {
 			// server sees them as being sent by the client
 			if (!filetransfer && operation < 5 && operation > -1) {
 				putError(Packet, operation, sendReceiveSocket, 69);
+				//if operation is for change port number
 			} else if (filetransfer && operation == 5 && Packet.GetPacketNum() == 0) {
 				Packet p = Packet;
 				putError(Packet, operation, sendReceiveSocket, ServerPort);
@@ -284,6 +285,7 @@ public class TFTPErrorSim {
 				} catch (IOException e) {
 					e.printStackTrace();
 				}
+				//if operation is for change ACK block number 
 			} else if (filetransfer && operation == 6 && filetransfer) {
 				putError(Packet, operation, sendReceiveSocket, ServerPort);
 			} else if (!filetransfer) {
@@ -292,6 +294,7 @@ public class TFTPErrorSim {
 				} catch (IOException e) {
 					e.printStackTrace();
 				}
+				//operation is for delay, duplicate, loss packets
 			} else if (filetransfer && operation >= 7 && operation <= 9) {
 				putError(Packet, operation, sendReceiveSocket, ServerPort);
 			} else {
@@ -376,7 +379,7 @@ public class TFTPErrorSim {
 		byte[] newData;
 
 		switch (userInput) {
-		case 0:
+		case 0: //standard operation no changes to packets or errors, etc..
 
 			System.out.println("Sending unchanged Request to Server to establish a connection");
 			System.out.println("Packet Received in Bytes: " + msg);
@@ -468,9 +471,9 @@ public class TFTPErrorSim {
 
 			break;
 
-		case 4:
+		case 4: // datapacket is greater than 512bytes
 			//create new data
-			newData = new byte[514];
+			newData = new byte[522];
 			//copy new data to old data
 			System.arraycopy(data, 0, newData, 0, data.length);
 			newData[newData.length - 1] = 0;
@@ -528,7 +531,8 @@ public class TFTPErrorSim {
 
 		// change ack block num
 		case 6:
-			if (!(Packet.GetInquiry() == 4 && Packet.GetPacketNum() == targetACK)) {
+			//check to make sure packet hasnt been sent already
+			if (!(Packet.GetInquiry() == 4 && Packet.GetPacketNum() == oldACK)) {
 				try {
 					helper.sendPacket(newPacket, soc, address, port);
 				} catch (IOException e) {
@@ -536,10 +540,11 @@ public class TFTPErrorSim {
 				}
 				break;
 			}
-			System.out.println("Changing the ACK block number " + targetACK + "  to " + newACK);
+			System.out.println("Changing the ACK block number " + oldACK + "  to " + newACK);
 
 			// create a new ack packet
 			Packet = new Packet(4, newACK);
+			//send that packet
 			try {
 				helper.sendPacket(Packet, soc, address, port);
 			} catch (IOException e4) {

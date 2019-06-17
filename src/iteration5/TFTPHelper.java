@@ -15,7 +15,7 @@ import java.util.Arrays;
 public class TFTPHelper {
 	String name;
 	boolean verbose;
-	int timeout = 5000;
+	int timeout = 500;
 	int retries = 5;
 
 	/**

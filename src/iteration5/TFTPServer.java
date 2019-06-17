@@ -550,18 +550,18 @@ class ServerWorker extends Thread {
 
 				if (receive.GetInquiry() == 5) {
 					if (receive.getErrorCode() == 1) {
-						System.out.println(receive.getErrorMssg());
+						System.out.println("Error Code: "+ receive.getErrorCode()+ ": " + receive.getErrorMssg());
 						break;
 					} else if (receive.getErrorCode() == 2) {
-						System.out.println(receive.getErrorMssg());
+						System.out.println("Error Code: "+ receive.getErrorCode()+ ": " + receive.getErrorMssg());
 						break;
 					} else if (receive.getErrorCode() == 6) {
-						System.out.println(receive.getErrorMssg());
+						System.out.println("Error Code: "+ receive.getErrorCode()+ ": " + receive.getErrorMssg());
 						break;
 					} else
 
 					if (receive.getErrorCode() == 4) {
-						System.out.println(receive.getErrorMssg());
+						System.out.println("Error Code: "+ receive.getErrorCode()+ ": " + receive.getErrorMssg());
 						break;
 					}
 				}
