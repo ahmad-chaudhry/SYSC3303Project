@@ -342,7 +342,16 @@ public class Packet {
 	 * @return the length
 	 */
 	public int dataLength() {
-		return BlockData.length;
+		int length = 0;
+		for (int j = 0; j < BlockData.length; j++) {
+			// check until 0 is found
+			if (BlockData[j] != 0) {
+				length++;
+			} else {
+				break;
+			}
+		}
+		return length;
 	}
 
 }

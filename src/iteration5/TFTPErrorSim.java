@@ -63,11 +63,12 @@ public class TFTPErrorSim {
 		System.out.println("1 - Error Code 4: Change RRQ to WRQ or WRQ to RRQ");
 		System.out.println("2 - Error Code 4: Change RRQ/WRQ to an invalid request");
 		System.out.println("3 - Error Code 4: Remove Filename");
-		System.out.println("4 - Error Code 5: Change Port Number");
-		System.out.println("5 - Change ACK block Number");
-		System.out.println("6 - Lost a packet");
-		System.out.println("7 - Delay a packet");
-		System.out.println("8 - Duplicate a Packet");
+		System.out.println("4 - Error Code 4: DATA packet size greater than 512bytes");
+		System.out.println("5 - Error Code 5: Change Port Number");
+		System.out.println("6 - Change ACK block Number");
+		System.out.println("7 - Lost a packet");
+		System.out.println("8 - Delay a packet");
+		System.out.println("9 - Duplicate a Packet");
 		// waits for a valid entry
 		while (true) {
 			String input = sc.nextLine();
@@ -98,6 +99,9 @@ public class TFTPErrorSim {
 			} else if (input.equals("8")) {
 				operation = 8;
 				break;
+			} else if (input.equals("9")) {
+				operation = 9;
+				break;
 			} else {
 				System.out.println();
 				System.out.println("Invalid choice, What type of operation would you like to perform ");
@@ -105,18 +109,19 @@ public class TFTPErrorSim {
 				System.out.println("1 - Error Code 4: Change RRQ to WRQ or WRQ to RRQ");
 				System.out.println("2 - Error Code 4: Change RRQ/WRQ to an invalid request");
 				System.out.println("3 - Error Code 4: Remove Filename");
-				System.out.println("4 - Error Code 5: Change Port Number");
-				System.out.println("5 - Change ACK block Number");
-				System.out.println("6 - Lost a packet");
-				System.out.println("7 - Delay a packet");
-				System.out.println("8 - Duplicate a Packet");
+				System.out.println("4 - Error Code 4: DATA packet size greater than 512bytes");
+				System.out.println("5 - Error Code 5: Change Port Number");
+				System.out.println("6 - Change ACK block Number");
+				System.out.println("7 - Lost a packet");
+				System.out.println("8 - Delay a packet");
+				System.out.println("9 - Duplicate a Packet");
 			}
 		}
-		if (operation == 5) {
+		if (operation == 4) {
 			getAckpacketNumber(sc);
 		}
 		// if operation is a lost/delay/duplicate packet ask for the packet type
-		if (operation == 6 || operation == 7 || operation == 8) {
+		if (operation == 7 || operation == 8 || operation == 9) {
 			getPacketType(sc);
 		} else {
 			start();
@@ -158,8 +163,8 @@ public class TFTPErrorSim {
 	 * 
 	 */
 	public void getPacketType(Scanner sc) {
-		// check if operation is 5, 6 or 7
-		if (operation == 6 || operation == 7 || operation == 8) {
+		// check if operation is 7,8,9
+		if (operation == 7 || operation == 8 || operation == 9) {
 			System.out.println("What type of request would you like to lose/delay/duplicate?");
 			System.out.println("RRQ (R)");
 			System.out.println("WRQ (W)");
@@ -269,9 +274,9 @@ public class TFTPErrorSim {
 			String received = new String(data, 0, len);
 
 			// server sees them as being sent by the client
-			if (!filetransfer && operation < 4 && operation > -1) {
+			if (!filetransfer && operation < 5 && operation > -1) {
 				putError(Packet, operation, sendReceiveSocket, 69);
-			} else if (filetransfer && operation == 4 && Packet.GetPacketNum() == 0) {
+			} else if (filetransfer && operation == 5 && Packet.GetPacketNum() == 0) {
 				Packet p = Packet;
 				putError(Packet, operation, sendReceiveSocket, ServerPort);
 				try {
@@ -279,7 +284,7 @@ public class TFTPErrorSim {
 				} catch (IOException e) {
 					e.printStackTrace();
 				}
-			} else if (filetransfer && operation == 5 && filetransfer) {
+			} else if (filetransfer && operation == 6 && filetransfer) {
 				putError(Packet, operation, sendReceiveSocket, ServerPort);
 			} else if (!filetransfer) {
 				try {
@@ -287,7 +292,7 @@ public class TFTPErrorSim {
 				} catch (IOException e) {
 					e.printStackTrace();
 				}
-			} else if (filetransfer && operation >= 6 && operation <= 8) {
+			} else if (filetransfer && operation >= 7 && operation <= 9) {
 				putError(Packet, operation, sendReceiveSocket, ServerPort);
 			} else {
 				try {
@@ -324,7 +329,7 @@ public class TFTPErrorSim {
 			System.out.println("Send Packet received from Server to the Client");
 
 			// client sees them as being sent by the server
-			if (filetransfer && operation == 4 && Packet.GetPacketNum() == 0) {
+			if (filetransfer && operation == 5 && Packet.GetPacketNum() == 0) {
 				Packet p = Packet;
 				putError(Packet, operation, sendSocket, ClientPort);
 				operation = -1;
@@ -333,11 +338,11 @@ public class TFTPErrorSim {
 				} catch (IOException e) {
 					e.printStackTrace();
 				}
-			} else if (filetransfer && operation >= 6 && operation <= 8) {
+			} else if (filetransfer && operation >= 7 && operation <= 9) {
 				putError(Packet, operation, sendSocket, ClientPort);
-			} else if (filetransfer && operation == 5) {
+			} else if (filetransfer && operation == 6) {
 				putError(Packet, operation, sendSocket, ClientPort);
-			}else {
+			} else {
 				try {
 					helper.sendPacket(Packet, sendSocket, address, ClientPort);
 				} catch (IOException e) {
@@ -463,7 +468,30 @@ public class TFTPErrorSim {
 
 			break;
 
-		case 4: // Change the Socket Invalid TID and send to the server.
+		case 4:
+			//create new data
+			newData = new byte[514];
+			//copy new data to old data
+			System.arraycopy(data, 0, newData, 0, data.length);
+			newData[newData.length - 1] = 0;
+			newData[newData.length - 2] = 1;
+
+			// New Packet
+			Packet = new Packet(3, newData, newPacket.GetPacketNum());
+			System.out.println("Modified Packet" + helper.byteToString(Packet.GetData()) + "\n");
+
+			// send Packet to server
+			try {
+				helper.sendPacket(Packet, soc, address, port);
+			} catch (IOException e5) {
+				e5.printStackTrace();
+			}
+
+			this.operation = -1;
+
+			break;
+
+		case 5: // Change the Socket Invalid TID and send to the server.
 			System.out.println("Changing the Port");
 			try {
 				changeSocket = new DatagramSocket();
@@ -498,8 +526,8 @@ public class TFTPErrorSim {
 
 			break;
 
-			//change ack block num
-		case 5:
+		// change ack block num
+		case 6:
 			if (!(Packet.GetInquiry() == 4 && Packet.GetPacketNum() == targetACK)) {
 				try {
 					helper.sendPacket(newPacket, soc, address, port);
@@ -522,7 +550,7 @@ public class TFTPErrorSim {
 
 			break;
 
-		case 6: // Lose a packet
+		case 7: // Lose a packet
 
 			System.out.println("Beginning losing a packet error simulation.");
 
@@ -580,7 +608,7 @@ public class TFTPErrorSim {
 
 			break;
 
-		case 7: // Delaying a Packet
+		case 8: // Delaying a Packet
 
 			System.out.println("Beginning delaying a packet error simulation.");
 
@@ -645,7 +673,7 @@ public class TFTPErrorSim {
 			this.operation = -1;
 			break;
 
-		case 8: // Duplicating packets
+		case 9: // Duplicating packets
 
 			System.out.println("Beginning duplicating a packet error simulation.");
 
