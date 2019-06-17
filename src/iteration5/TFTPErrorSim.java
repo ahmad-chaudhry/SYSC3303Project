@@ -26,7 +26,7 @@ public class TFTPErrorSim {
 	private int errorPacketType = 0; // 1=DATA, 2=ACK
 	private int packetBlockNumber = 0;
 	private int clientrequest = -1;
-	private InetAddress address;
+	private InetAddress address, clientAddress, serverAddress;
 	private int oldACK, newACK;
 
 	public TFTPErrorSim(boolean verbose) {
@@ -262,6 +262,9 @@ public class TFTPErrorSim {
 				}
 			}
 
+			if (clientAddress == null) {
+				clientAddress = Packet.GetAddress();
+			}
 			// Extracting the Packet Received from the Client
 			ClientPort = Packet.GetPort();
 			if (clientrequest == -1) {
@@ -275,28 +278,28 @@ public class TFTPErrorSim {
 
 			// server sees them as being sent by the client
 			if (!filetransfer && operation < 5 && operation > -1) {
-				putError(Packet, operation, sendReceiveSocket, 69);
-				//if operation is for change port number
+				putError(Packet, operation, sendReceiveSocket, 69, serverAddress);
+				// if operation is for change port number
 			} else if (filetransfer && operation == 5 && Packet.GetPacketNum() == 0) {
 				Packet p = Packet;
-				putError(Packet, operation, sendReceiveSocket, ServerPort);
+				putError(Packet, operation, sendReceiveSocket, ServerPort, serverAddress);
 				try {
 					helper.sendPacket(p, sendReceiveSocket, address, ServerPort);
 				} catch (IOException e) {
 					e.printStackTrace();
 				}
-				//if operation is for change ACK block number 
+				// if operation is for change ACK block number
 			} else if (filetransfer && operation == 6 && filetransfer) {
-				putError(Packet, operation, sendReceiveSocket, ServerPort);
+				putError(Packet, operation, sendReceiveSocket, ServerPort, serverAddress);
 			} else if (!filetransfer) {
 				try {
 					helper.sendPacket(Packet, sendReceiveSocket, address, 69);
 				} catch (IOException e) {
 					e.printStackTrace();
 				}
-				//operation is for delay, duplicate, loss packets
+				// operation is for delay, duplicate, loss packets
 			} else if (filetransfer && operation >= 7 && operation <= 9) {
-				putError(Packet, operation, sendReceiveSocket, ServerPort);
+				putError(Packet, operation, sendReceiveSocket, ServerPort, serverAddress);
 			} else {
 				try {
 					helper.sendPacket(Packet, sendReceiveSocket, address, ServerPort);
@@ -334,20 +337,20 @@ public class TFTPErrorSim {
 			// client sees them as being sent by the server
 			if (filetransfer && operation == 5 && Packet.GetPacketNum() == 0) {
 				Packet p = Packet;
-				putError(Packet, operation, sendSocket, ClientPort);
+				putError(Packet, operation, sendSocket, ClientPort, clientAddress);
 				operation = -1;
 				try {
-					helper.sendPacket(p, sendSocket, address, ClientPort);
+					helper.sendPacket(p, sendSocket, clientAddress, ClientPort);
 				} catch (IOException e) {
 					e.printStackTrace();
 				}
 			} else if (filetransfer && operation >= 7 && operation <= 9) {
-				putError(Packet, operation, sendSocket, ClientPort);
+				putError(Packet, operation, sendSocket, ClientPort, clientAddress);
 			} else if (filetransfer && operation == 6) {
-				putError(Packet, operation, sendSocket, ClientPort);
+				putError(Packet, operation, sendSocket, ClientPort, clientAddress);
 			} else {
 				try {
-					helper.sendPacket(Packet, sendSocket, address, ClientPort);
+					helper.sendPacket(Packet, sendSocket, clientAddress, ClientPort);
 				} catch (IOException e) {
 					e.printStackTrace();
 				}
@@ -360,7 +363,7 @@ public class TFTPErrorSim {
 	}
 
 	// Simulate the User error and send the new packet to the Server
-	public void putError(Packet newPacket, int userInput, DatagramSocket soc, int port) {
+	public void putError(Packet newPacket, int userInput, DatagramSocket soc, int port, InetAddress addr) {
 
 		String sender = "";
 		Packet p1;
@@ -379,7 +382,7 @@ public class TFTPErrorSim {
 		byte[] newData;
 
 		switch (userInput) {
-		case 0: //standard operation no changes to packets or errors, etc..
+		case 0: // standard operation no changes to packets or errors, etc..
 
 			System.out.println("Sending unchanged Request to Server to establish a connection");
 			System.out.println("Packet Received in Bytes: " + msg);
@@ -472,9 +475,9 @@ public class TFTPErrorSim {
 			break;
 
 		case 4: // datapacket is greater than 512bytes
-			//create new data
+			// create new data
 			newData = new byte[522];
-			//copy new data to old data
+			// copy new data to old data
 			System.arraycopy(data, 0, newData, 0, data.length);
 			newData[newData.length - 1] = 0;
 			newData[newData.length - 2] = 1;
@@ -531,7 +534,7 @@ public class TFTPErrorSim {
 
 		// change ack block num
 		case 6:
-			//check to make sure packet hasnt been sent already
+			// check to make sure packet hasnt been sent already
 			if (!(Packet.GetInquiry() == 4 && Packet.GetPacketNum() == oldACK)) {
 				try {
 					helper.sendPacket(newPacket, soc, address, port);
@@ -544,7 +547,7 @@ public class TFTPErrorSim {
 
 			// create a new ack packet
 			Packet = new Packet(4, newACK);
-			//send that packet
+			// send that packet
 			try {
 				helper.sendPacket(Packet, soc, address, port);
 			} catch (IOException e4) {
@@ -583,9 +586,19 @@ public class TFTPErrorSim {
 			p1 = helper.receivePacket(soc);
 
 			if (port == ClientPort) { // sending to the client
+				try {
+					helper.sendPacket(p1, sendReceiveSocket, serverAddress, ServerPort);
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
 				soc = sendReceiveSocket;
 				sender = "Server";
 			} else { // sending to the server
+				try {
+					helper.sendPacket(p1, sendSocket, clientAddress, ClientPort);
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
 				soc = sendSocket;
 				sender = "Client";
 			}
@@ -597,14 +610,14 @@ public class TFTPErrorSim {
 			if (port == ClientPort) {
 				System.out.println("Sending packet to client");
 				try {
-					helper.sendPacket(Packet, sendSocket, address, ClientPort);
+					helper.sendPacket(Packet, sendSocket, clientAddress, ClientPort);
 				} catch (IOException e) {
 					e.printStackTrace();
 				}
 			} else {
 				System.out.println("Sending packet to server");
 				try {
-					helper.sendPacket(Packet, sendReceiveSocket, address, ServerPort);
+					helper.sendPacket(Packet, sendReceiveSocket, serverAddress, ServerPort);
 				} catch (IOException e) {
 					e.printStackTrace();
 				}
@@ -654,23 +667,23 @@ public class TFTPErrorSim {
 
 			if (port == ClientPort) {
 				try {
-					helper.sendPacket(Packet, sendSocket, address, ClientPort);
+					helper.sendPacket(Packet, sendSocket, clientAddress, ClientPort);
 				} catch (IOException e1) {
 					e1.printStackTrace();
 				}
 				try {
-					helper.sendPacket(p1, sendReceiveSocket, address, ServerPort);
+					helper.sendPacket(p1, sendReceiveSocket, serverAddress, ServerPort);
 				} catch (IOException e) {
 					e.printStackTrace();
 				}
 			} else {
 				try {
-					helper.sendPacket(Packet, sendReceiveSocket, address, ServerPort);
+					helper.sendPacket(Packet, sendReceiveSocket, serverAddress, ServerPort);
 				} catch (IOException e1) {
 					e1.printStackTrace();
 				}
 				try {
-					helper.sendPacket(p1, sendSocket, address, ClientPort);
+					helper.sendPacket(p1, sendSocket, clientAddress, ClientPort);
 				} catch (IOException e) {
 					e.printStackTrace();
 				}
@@ -731,7 +744,7 @@ public class TFTPErrorSim {
 					|| (requestPacketType == 2 && errorPacketType == 4))) { // sending to the client
 				System.out.println("Sending packet to server");
 				try {
-					helper.sendPacket(Packet, sendReceiveSocket, address, ServerPort);
+					helper.sendPacket(Packet, sendReceiveSocket, serverAddress, ServerPort);
 				} catch (IOException e1) {
 					e1.printStackTrace();
 				}
@@ -741,7 +754,7 @@ public class TFTPErrorSim {
 
 				System.out.println("Sending packet to client");
 				try {
-					helper.sendPacket(Packet, sendSocket, address, ClientPort);
+					helper.sendPacket(Packet, sendSocket, clientAddress, ClientPort);
 				} catch (IOException e) {
 					e.printStackTrace();
 				}
@@ -749,7 +762,7 @@ public class TFTPErrorSim {
 			} else if (port == ClientPort) {
 				System.out.println("Sending packet to server");
 				try {
-					helper.sendPacket(Packet, sendReceiveSocket, address, ServerPort);
+					helper.sendPacket(Packet, sendReceiveSocket, serverAddress, ServerPort);
 				} catch (IOException e) {
 					e.printStackTrace();
 				}
@@ -759,7 +772,7 @@ public class TFTPErrorSim {
 				// server
 				System.out.println("Sending packet to client");
 				try {
-					helper.sendPacket(Packet, sendSocket, address, ClientPort);
+					helper.sendPacket(Packet, sendSocket, clientAddress, ClientPort);
 				} catch (IOException e1) {
 					e1.printStackTrace();
 				}
@@ -769,7 +782,7 @@ public class TFTPErrorSim {
 
 				System.out.println("Sending packet to server");
 				try {
-					helper.sendPacket(Packet, sendReceiveSocket, address, ServerPort);
+					helper.sendPacket(Packet, sendReceiveSocket, serverAddress, ServerPort);
 				} catch (IOException e) {
 					e.printStackTrace();
 				}
@@ -777,7 +790,7 @@ public class TFTPErrorSim {
 			} else {
 				System.out.println("Sending packet to client");
 				try {
-					helper.sendPacket(Packet, sendSocket, address, ClientPort);
+					helper.sendPacket(Packet, sendSocket, clientAddress, ClientPort);
 				} catch (IOException e) {
 					e.printStackTrace();
 				}
@@ -788,10 +801,21 @@ public class TFTPErrorSim {
 		}
 	}// End of Method
 
+	private void setServerAddress(InetAddress addr) {
+		serverAddress = addr;
+	}
+
 	public static void main(String args[]) {
 		// ask user if they want verbose
 		boolean verbose;
 		boolean running = true;
+		InetAddress LocalAddress = null;
+		try {
+			LocalAddress = InetAddress.getLocalHost();
+		} catch (UnknownHostException e1) {
+			e1.printStackTrace();
+		}
+		InetAddress ServerAddress = LocalAddress;
 		Scanner sc = new Scanner(System.in);
 		System.out.println("----ERRORSIM RUNNING----");
 		System.out.println("");
@@ -809,30 +833,65 @@ public class TFTPErrorSim {
 			}
 			System.out.println("Mode not valid, please choose either \"Y\" or \"N\" for verbose");
 		}
+		boolean isLocal;
+		while (true) {
+			System.out.println("Would you like to run locally (Y/N)?");
 
-		while (running) {
-			TFTPErrorSim TFTPErrorSim = new TFTPErrorSim(verbose);
-			TFTPErrorSim.OPset(sc);
-
-			while (true) {
-				System.out.println("Run again? (Y/N)?");
-				// check users input
-				String input = sc.nextLine();
-				// if they want to continue keep running
-				if (input.toUpperCase().equals("Y")) {
-					running = true;
-					break;
-				}
-				// if they want to stop set running false it will break from while loop
-				if (input.toUpperCase().equals("N")) {
-					running = false;
-					break;
-				}
-				System.out.println("Invalid response please choose \"Y\" or \"N\": ");
+			String input = sc.nextLine();
+			if (input.toUpperCase().equals("Y")) {
+				isLocal = true;
+				break;
 			}
+			if (input.toUpperCase().equals("N")) {
+				isLocal = false;
+				break;
+			}
+			System.out.println("Invalid Mode! Select either 'Y'(Yes), 'N'(No)");
 		}
-		System.out.println();
-		System.out.println("TFTPErrorSim has been shutdown");
-		sc.close();
+		while (true && !isLocal) {
+			System.out.println("Please enter the server address:");
+
+			String input = sc.nextLine();
+
+			try {
+				ServerAddress = InetAddress.getByName(input);
+				try {
+					if (ServerAddress.isReachable(5000)) {
+						System.out.println("Address is valid.\n");
+						break;
+					}
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			} catch (UnknownHostException e) {
+				System.out.println("Failed to Ping Address.");
+			}
+			System.out.println("Invalid Address.\n");
+		}
+			while (running) {
+				TFTPErrorSim TFTPErrorSim = new TFTPErrorSim(verbose);
+				TFTPErrorSim.setServerAddress(ServerAddress);
+				TFTPErrorSim.OPset(sc);
+
+				while (true) {
+					System.out.println("Run again? (Y/N)?");
+					// check users input
+					String input = sc.nextLine();
+					// if they want to continue keep running
+					if (input.toUpperCase().equals("Y")) {
+						running = true;
+						break;
+					}
+					// if they want to stop set running false it will break from while loop
+					if (input.toUpperCase().equals("N")) {
+						running = false;
+						break;
+					}
+					System.out.println("Invalid response please choose \"Y\" or \"N\": ");
+				}
+			}
+			System.out.println();
+			System.out.println("TFTPErrorSim has been shutdown");
+			sc.close();
+		}
 	}
-}

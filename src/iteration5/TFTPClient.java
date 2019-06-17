@@ -20,7 +20,7 @@ import java.util.Scanner;
 public class TFTPClient {
 	private DatagramSocket socket;
 	private TFTPHelper helper;
-	private static InetAddress ServerAddress = null;
+	private static InetAddress ServerAddress;
 	private String directory;
 	private int Port;
 	private boolean InitAddress;
@@ -476,14 +476,22 @@ public class TFTPClient {
 						}
 						if (input.toUpperCase().equals("N")) {
 							System.out.println("Enter the IP address: ");
-							AddrHolder = InetAddress.getByName(sc.nextLine());
+							input = sc.nextLine();
+							try {
+								AddrHolder = InetAddress.getByName(input);
+								if (AddrHolder.isReachable(5000)) {
+									System.out.println("Address is valid.\n");
+									break;
+								}
+							} catch (UnknownHostException e) {
+								System.out.println("Failed to Ping Address.");
+							}
 							break;
 						}
 						if (input.toLowerCase().equals("quit")) {
 							System.out.println("Client is shutting down");
 							System.exit(0);
 						}
-						System.out.println("Mode not valid, please choose either \"Normal\" or \"Test\" for mode");
 					}
 				}
 				// get current directory to be used for saving and loading files

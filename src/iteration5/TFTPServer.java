@@ -36,6 +36,14 @@ public class TFTPServer {
 		System.out.println("----SERVER RUNNING----");
 		System.out.println("");
 		System.out.println("");
+		
+		System.out.println("local IP address: ");
+		try {
+			System.out.print(InetAddress.getLocalHost().getHostAddress()+"\n");
+		} catch (Exception e) {
+			System.exit(1);
+		}
+		
 		while (true) {
 			System.out.println("Would you like to run it in verbose mode (Y/N)?");
 
